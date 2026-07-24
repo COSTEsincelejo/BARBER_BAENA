@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getContacto } from "../api.js";
+import BrandMark from "../components/BrandMark.jsx";
 import PanelTurnos from "../panels/Turnos.jsx";
 import PanelCotizaciones from "../panels/Cotizaciones.jsx";
 import PanelFinanzas from "../panels/Finanzas.jsx";
@@ -42,6 +43,15 @@ function AdminLogin({ onSuccess }) {
       <div className="bg-glow bg-glow-a" aria-hidden="true" />
       <div className="pole-stripe" aria-hidden="true" />
       <div className="shell" style={{ maxWidth: 440 }}>
+        <div className="hero-brand-panel" style={{ marginBottom: 16 }}>
+          <img
+            className="hero-logo"
+            src="/logo-baena-barber.png"
+            alt="Baena Barber"
+            style={{ width: 140 }}
+          />
+          <BrandMark variant="compact" />
+        </div>
         <header className="section-head">
           <h2>Acceso administrador</h2>
           <p>Solo personal de Baena Barber.</p>
@@ -129,13 +139,19 @@ export default function Admin() {
       <div className="shell">
         <header className="hero-bar">
           <div className="brand-lockup">
-            <div className="brand-mark-wrap">
-              <span className="brand-scissors" aria-hidden="true">
-                ✂
-              </span>
-              <h1 className="brand-mark">Baena Barber</h1>
+            <div className="admin-brand-row">
+              <img
+                className="nav-logo"
+                src="/logo-baena-barber.png"
+                alt="Baena Barber"
+                width="48"
+                height="48"
+              />
+              <div>
+                <BrandMark variant="compact" />
+                <p className="brand-tag">Panel administrador</p>
+              </div>
             </div>
-            <p className="brand-tag">Panel administrador</p>
           </div>
 
           <div className="hero-meta">

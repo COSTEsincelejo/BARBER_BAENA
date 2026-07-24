@@ -7,6 +7,7 @@ import {
 } from "../api.js";
 import Calendario from "../components/Calendario.jsx";
 import SelectorHora from "../components/SelectorHora.jsx";
+import BrandMark from "../components/BrandMark.jsx";
 import { slotsConEstadoLocal, formatHoraAmPm } from "../utils/horarios.js";
 
 const emptyForm = {
@@ -163,7 +164,7 @@ export default function Cliente() {
     const payload = {
       ...form,
       cliente_nombre: form.cliente_nombre.trim(),
-      cliente_telefono: form.cliente_telefono || "",
+      cliente_telefono: "",
     };
 
     const waAdmin = waLink(
@@ -212,10 +213,17 @@ export default function Cliente() {
 
       <header className="client-nav">
         <div className="client-nav-brand">
-          <span className="brand-scissors" aria-hidden="true">
-            ✂
-          </span>
-          <strong>Baena Barber</strong>
+          <img
+            className="nav-logo"
+            src="/logo-baena-barber.png"
+            alt="Baena Barber"
+            width="40"
+            height="40"
+          />
+          <div className="nav-brand-text">
+            <strong>Baena Barber</strong>
+            <span>Barber Shop</span>
+          </div>
         </div>
         <div className="client-nav-actions">
           <a className="btn btn-wa" href={linkDudas} target="_blank" rel="noreferrer">
@@ -229,14 +237,20 @@ export default function Cliente() {
         </div>
       </header>
 
-      <section className="client-hero client-hero-compact">
-        <p className="client-kicker">Barbería moderna</p>
-        <h1 className="client-brand">Baena Barber</h1>
-        <p className="client-lead">
-          Elige el día, el horario y el servicio. Al confirmar se avisa al
-          administrador por WhatsApp.
-        </p>
-        {msg && <p className="client-success">{msg}</p>}
+      <section className="client-hero client-hero-brand">
+        <div className="hero-brand-panel">
+          <img
+            className="hero-logo"
+            src="/logo-baena-barber.png"
+            alt="Baena Barber — logo"
+          />
+          <BrandMark variant="hero" />
+          <p className="client-lead">
+            Elige el día, el horario y el servicio. Al confirmar se avisa al
+            administrador por WhatsApp.
+          </p>
+          {msg && <p className="client-success">{msg}</p>}
+        </div>
       </section>
 
       <section className="client-section" id="servicios">
@@ -348,9 +362,12 @@ export default function Cliente() {
       </section>
 
       <footer className="client-footer">
-        <div>
-          <strong>Baena Barber</strong>
-          <p>Corte · Barba · Combo</p>
+        <div className="footer-brand">
+          <img src="/logo-baena-barber.png" alt="" width="48" height="48" />
+          <div>
+            <strong>Baena Barber</strong>
+            <p>Barber Shop · Corte · Barba · Combo</p>
+          </div>
         </div>
         <div className="contact-actions">
           <a className="btn btn-wa" href={linkDudas} target="_blank" rel="noreferrer">
