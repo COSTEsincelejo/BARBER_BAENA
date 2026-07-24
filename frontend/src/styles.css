@@ -1,0 +1,193 @@
+:root {
+  --navy: #0b1e39;
+  --navy-light: #16305c;
+  --blue: #3b82c4;
+  --blue-light: #cfe4f7;
+  --bg: #f4f7fb;
+  --white: #ffffff;
+  --text: #1c2733;
+  --success: #1f9d55;
+  --danger: #d64545;
+  --warning: #e0a531;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background: var(--navy);
+  color: var(--white);
+  padding: 24px 16px;
+  flex-shrink: 0;
+}
+
+.sidebar h1 {
+  font-size: 1.2rem;
+  margin-bottom: 24px;
+  color: var(--blue-light);
+}
+
+.sidebar nav a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--white);
+  text-decoration: none;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.sidebar nav a.active,
+.sidebar nav a:hover {
+  background: var(--navy-light);
+  color: var(--blue-light);
+}
+
+.main-content {
+  flex: 1;
+  padding: 32px;
+  max-width: 1100px;
+}
+
+.card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(11, 30, 57, 0.08);
+  margin-bottom: 20px;
+}
+
+h2 {
+  color: var(--navy);
+  margin-top: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid #e5e9ef;
+  font-size: 0.9rem;
+}
+
+th {
+  color: var(--navy);
+  background: var(--blue-light);
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--navy-light);
+  display: block;
+  margin-bottom: 4px;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: var(--white);
+}
+
+.btn-primary:hover { background: var(--navy-light); }
+
+.btn-whatsapp {
+  background: #25d366;
+  color: var(--white);
+  margin-right: 8px;
+}
+
+.btn-call {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: var(--white);
+}
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.badge-pendiente { background: var(--warning); }
+.badge-confirmado { background: var(--blue); }
+.badge-completado { background: var(--success); }
+.badge-cancelado { background: var(--danger); }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.stat {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stat-box {
+  flex: 1;
+  min-width: 140px;
+  background: var(--blue-light);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.stat-box .label { font-size: 0.8rem; color: var(--navy-light); }
+.stat-box .value { font-size: 1.4rem; font-weight: 700; color: var(--navy); }
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.checkbox-row input { width: auto; margin: 0; }
+
+.total-line {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-top: 12px;
+}
