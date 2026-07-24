@@ -5,8 +5,8 @@ const {
   mensajeCotizacion,
 } = require("../utils/contacto");
 
-const BARBERSHOP_WHATSAPP = process.env.BARBERSHOP_WHATSAPP || "573000000000";
-const BARBERSHOP_PHONE = process.env.BARBERSHOP_PHONE || "+573000000000";
+const BARBERSHOP_WHATSAPP = process.env.BARBERSHOP_WHATSAPP || "573114001414";
+const BARBERSHOP_PHONE = process.env.BARBERSHOP_PHONE || "+573114001414";
 
 async function obtenerConItems(id) {
   const cot = await pool.query("SELECT * FROM cotizaciones WHERE id = $1", [id]);

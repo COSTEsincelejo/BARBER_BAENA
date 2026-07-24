@@ -13,8 +13,8 @@ const {
 const { esDiaBloqueado } = require("./bloqueosController");
 const { upsertCliente, normalizarTelefono } = require("./clientesController");
 
-const BARBERSHOP_WHATSAPP = process.env.BARBERSHOP_WHATSAPP || "573000000000";
-const BARBERSHOP_PHONE = process.env.BARBERSHOP_PHONE || "+573000000000";
+const BARBERSHOP_WHATSAPP = process.env.BARBERSHOP_WHATSAPP || "573114001414";
+const BARBERSHOP_PHONE = process.env.BARBERSHOP_PHONE || "+573114001414";
 const NEQUI_NUMERO = process.env.NEQUI_NUMERO || BARBERSHOP_WHATSAPP;
 
 function contactoTurno(clienteTelefono, mensaje) {

@@ -360,8 +360,8 @@ Inicio
 
 | Concepto | Variable / valor de ejemplo |
 |----------|-----------------------------|
-| WhatsApp barbería | `BARBERSHOP_WHATSAPP` (ej. 573001234567) |
-| Nequi | `NEQUI_NUMERO` |
+| WhatsApp barbería | `BARBERSHOP_WHATSAPP` = `573114001414` |
+| Nequi | `NEQUI_NUMERO` (por defecto el mismo) |
 | URL cliente | `http://localhost:5173/` |
 
 ### Anexo D — Relación con IEEE Std 830-1998

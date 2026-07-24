@@ -37,8 +37,8 @@ app.get("/api/health", (_req, res) =>
 
 app.get("/api/contacto", (_req, res) => {
   const { linkWhatsApp, linkLlamada } = require("./utils/contacto");
-  const wa = process.env.BARBERSHOP_WHATSAPP || "573000000000";
-  const phone = process.env.BARBERSHOP_PHONE || "+573000000000";
+  const wa = process.env.BARBERSHOP_WHATSAPP || "573114001414";
+  const phone = process.env.BARBERSHOP_PHONE || "+573114001414";
   const nequi = process.env.NEQUI_NUMERO || wa;
   res.json({
     whatsapp: linkWhatsApp(wa, "Hola Baena Barber, quiero agendar un turno."),

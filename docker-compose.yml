@@ -31,12 +31,12 @@ services:
       DB_PASSWORD: barberia123
       DB_NAME: barberia_db
       PORT: 4000
-      BARBERSHOP_WHATSAPP: "573001234567"
-      BARBERSHOP_PHONE: "+573001234567"
+      BARBERSHOP_WHATSAPP: "573114001414"
+      BARBERSHOP_PHONE: "+573114001414"
       ADMIN_USER: admin
       ADMIN_PASSWORD: baena2026
       JWT_SECRET: baena-barber-compose-secret
-      NEQUI_NUMERO: "573001234567"
+      NEQUI_NUMERO: "573114001414"
     ports:
       - "4000:4000"
     depends_on:
@@ -49,8 +49,8 @@ services:
     restart: unless-stopped
     environment:
       VITE_API_URL: http://localhost:4000/api
-      VITE_WHATSAPP: "573001234567"
-      VITE_PHONE: "+573001234567"
+      VITE_WHATSAPP: "573114001414"
+      VITE_PHONE: "+573114001414"
     ports:
       - "5173:5173"
     depends_on:

@@ -20,7 +20,7 @@ const emptyForm = {
 };
 
 const SERVICIO_ORDER = ["corte", "barba", "corte + barba"];
-const ADMIN_WA = import.meta.env.VITE_WHATSAPP || "573001234567";
+const ADMIN_WA = import.meta.env.VITE_WHATSAPP || "573114001414";
 
 function waLink(numero, mensaje) {
   const n = String(numero || ADMIN_WA).replace(/\D/g, "");
@@ -79,7 +79,7 @@ export default function Cliente() {
     ]).then(([c, s, b]) => {
       if (c) setContacto(c);
       else {
-        const phone = import.meta.env.VITE_PHONE || "+573001234567";
+        const phone = import.meta.env.VITE_PHONE || "+573114001414";
         setContacto({
           whatsapp: waLink(ADMIN_WA, MENSAJE_DUDAS),
           telefono: `tel:${phone}`,

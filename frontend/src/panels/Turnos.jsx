@@ -107,7 +107,7 @@ export default function PanelTurnos() {
                 name="cliente_telefono"
                 value={form.cliente_telefono}
                 onChange={handleChange}
-                placeholder="573001234567"
+                placeholder="573114001414"
                 required
               />
             </div>

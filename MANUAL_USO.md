@@ -183,8 +183,8 @@ En `backend/.env` (o docker-compose):
 
 | Variable | Qué es |
 |----------|--------|
-| `BARBERSHOP_WHATSAPP` | Número para WhatsApp (sin `+`, ej. `573001234567`) |
-| `BARBERSHOP_PHONE` | Teléfono para llamadas (`+573001234567`) |
+| `BARBERSHOP_WHATSAPP` | Número para WhatsApp (sin `+`: `573114001414`) |
+| `BARBERSHOP_PHONE` | Teléfono para llamadas (`+573114001414`) |
 | `NEQUI_NUMERO` | Número Nequi que ve el cliente |
 | `ADMIN_USER` / `ADMIN_PASSWORD` | Acceso al panel |
 

@@ -107,7 +107,7 @@ export default function PanelCotizaciones() {
                 onChange={(e) =>
                   setCliente({ ...cliente, telefono: e.target.value })
                 }
-                placeholder="573001234567"
+                placeholder="573114001414"
               />
             </div>
           </div>
