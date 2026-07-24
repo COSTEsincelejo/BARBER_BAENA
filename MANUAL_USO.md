@@ -2,6 +2,9 @@
 
 Guía rápida para **clientes** y **administrador**.
 
+> **Manual formal del cliente (norma IEEE 830):**  
+> [`docs/MANUAL_USUARIO_CLIENTE_IEEE830.md`](docs/MANUAL_USUARIO_CLIENTE_IEEE830.md)
+
 | Quién | Dirección |
 |-------|-----------|
 | Cliente (público) | `http://localhost:5173/` |
