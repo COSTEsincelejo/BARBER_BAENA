@@ -133,7 +133,7 @@ Baena Barber es un sistema web de gestión de barbería. El **módulo Cliente** 
 | F-C02 | Seleccionar fecha | Elegir día en calendario (sin días pasados ni bloqueados) |
 | F-C03 | Seleccionar hora | Elegir slot disponible entre 9:30 y 18:00 |
 | F-C04 | Seleccionar servicio | Corte, Barba o Corte + Barba |
-| F-C05 | Identificarse | Ingresar nombre y celular |
+| F-C05 | Identificarse | Ingresar nombre |
 | F-C06 | Confirmar cita | Enviar aviso al administrador por WhatsApp |
 | F-C07 | Pagar con Nequi | Ver número, monto, copiar y/o avisar pago |
 | F-C08 | Consultar dudas | Abrir chat WhatsApp prearmado |
@@ -152,7 +152,7 @@ No se requiere registro de cuenta ni contraseña en el módulo Cliente.
 2. Horario laboral del sistema: **09:30 – 18:00**, intervalos de **30 minutos**.  
 3. Un horario ocupado no puede reservarse de nuevo.  
 4. Días bloqueados por la barbería no permiten reserva.  
-5. El celular es **obligatorio** para asociar historial y seguimiento de pago.  
+5. El nombre es **obligatorio** para confirmar la cita.  
 6. La confirmación depende de que el navegador permita abrir WhatsApp (`wa.me`).  
 7. El pago Nequi es **asistido** (transferencia + aviso); no es un cobro automático dentro de la app.
 
@@ -217,8 +217,7 @@ No se requiere registro de cuenta ni contraseña en el módulo Cliente.
 | 3 | Seleccionar una **hora** disponible (no tachada) | Queda seleccionada la hora |
 | 4 | Elegir el **tipo de servicio** | Queda resaltado el servicio elegido |
 | 5 | Escribir **nombre** | Campo completado |
-| 6 | Escribir **celular** | Campo completado (obligatorio) |
-| 7 | Pulsar **Confirmar cita por WhatsApp** | Valida datos; intenta guardar la cita; abre WhatsApp |
+| 6 | Pulsar **Confirmar cita por WhatsApp** | Valida datos; intenta guardar la cita; abre WhatsApp |
 
 **Postcondiciones:**
 

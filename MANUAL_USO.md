@@ -42,7 +42,7 @@ Servicios y precios:
 4. **Elige la hora** disponible.
    - Las tachadas están ocupadas o ya pasaron.
 5. **Elige el servicio**: Corte, Barba o Corte + Barba.
-6. Escribe tu **nombre** y tu **celular** (obligatorio).
+6. Escribe tu **nombre**.
 7. Pulsa **Confirmar cita por WhatsApp**.
 8. Se abre WhatsApp con el mensaje de la cita para el administrador.
 9. En la página aparece la tarjeta **Pagar con Nequi**:
@@ -55,7 +55,6 @@ Servicios y precios:
 
 ### 1.4 Tips
 
-- El celular sirve para tu historial en la barbería y para el seguimiento del pago.
 - Si WhatsApp no se abre, revisa que el navegador no esté bloqueando ventanas emergentes.
 - Si un horario desaparece al refrescar, otro cliente ya lo tomó: elige otra hora.
 
@@ -132,7 +131,7 @@ pendiente → confirmado → (cliente llega) → completado
 5. Pulsa **Guardar historial**.
 6. Abajo verás las **últimas visitas** (fecha, hora, servicio, estado).
 
-Los clientes se crean solos cuando alguien agenda con celular.
+Los clientes se crean al agendar; el admin completa el historial en la ficha.
 
 ---
 
@@ -213,7 +212,7 @@ Después de cambiar variables, reinicia el backend.
 | “Horario ocupado” | Elige otra hora; alguien lo reservó antes |
 | No aparece tarjeta Nequi | Confirma la cita primero; revisa `NEQUI_NUMERO` en el backend |
 | Reportes en cero | Aún no hay citas completadas / pagos / no-shows en el período |
-| Clientes vacíos | Deben agendar con celular para crear el historial |
+| Clientes vacíos | Aún no hay citas agendadas o falta refrescar |
 
 ---
 
