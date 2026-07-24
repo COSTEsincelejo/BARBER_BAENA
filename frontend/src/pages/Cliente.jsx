@@ -13,7 +13,6 @@ import { slotsConEstadoLocal, formatHoraAmPm } from "../utils/horarios.js";
 
 const emptyForm = {
   cliente_nombre: "",
-  cliente_telefono: "",
   servicio_id: "",
   fecha: "",
   hora: "",
@@ -166,10 +165,6 @@ export default function Cliente() {
       setError("Escribe tu nombre para confirmar la cita.");
       return;
     }
-    if (!form.cliente_telefono.trim()) {
-      setError("Escribe tu celular para historial y pago Nequi.");
-      return;
-    }
 
     setSaving(true);
     setPagoInfo(null);
@@ -180,7 +175,7 @@ export default function Cliente() {
     const payload = {
       ...form,
       cliente_nombre: form.cliente_nombre.trim(),
-      cliente_telefono: form.cliente_telefono.trim(),
+      cliente_telefono: "",
     };
 
     const waAdmin = waLink(
@@ -421,20 +416,6 @@ export default function Cliente() {
             placeholder="Cómo te llamas"
             required
           />
-          <label htmlFor="cliente_telefono">Tu celular</label>
-          <input
-            id="cliente_telefono"
-            name="cliente_telefono"
-            value={form.cliente_telefono}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, cliente_telefono: e.target.value }))
-            }
-            placeholder="3001234567"
-            required
-          />
-          <p className="muted" style={{ marginTop: -6, marginBottom: 12 }}>
-            Sirve para tu historial y para confirmar el pago por Nequi.
-          </p>
 
           <button type="submit" className="btn btn-wa btn-block" disabled={saving}>
             {saving ? "Abriendo WhatsApp…" : "Confirmar cita por WhatsApp"}
