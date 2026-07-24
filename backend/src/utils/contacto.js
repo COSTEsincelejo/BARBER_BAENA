@@ -12,12 +12,17 @@ function linkLlamada(telefono) {
 }
 
 function mensajeConfirmacionTurno(turno, servicioNombre) {
+  const hora = String(turno.hora || "").slice(0, 5);
+  const fecha = String(turno.fecha || "").slice(0, 10);
   return (
-    `Hola, quiero confirmar mi turno en Baena Barber:\n` +
-    `Cliente: ${turno.cliente_nombre}\n` +
+    `Hola Baena Barber, quiero agendar una cita:\n` +
+    `Nombre: ${turno.cliente_nombre}\n` +
+    (turno.cliente_telefono
+      ? `Teléfono: ${turno.cliente_telefono}\n`
+      : "") +
     `Servicio: ${servicioNombre || "-"}\n` +
-    `Fecha: ${turno.fecha} ${turno.hora}\n` +
-    `Barbero: ${turno.barbero || "cualquiera"}`
+    `Fecha: ${fecha}\n` +
+    `Hora: ${hora}`
   );
 }
 

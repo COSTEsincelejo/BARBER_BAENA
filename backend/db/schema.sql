@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS servicios (
 CREATE TABLE IF NOT EXISTS turnos (
     id SERIAL PRIMARY KEY,
     cliente_nombre VARCHAR(120) NOT NULL,
-    cliente_telefono VARCHAR(30) NOT NULL,
+    cliente_telefono VARCHAR(30) NOT NULL DEFAULT '',
     servicio_id INT REFERENCES servicios(id) ON DELETE SET NULL,
     barbero VARCHAR(100),
     fecha DATE NOT NULL,
@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS turnos (
 CREATE INDEX IF NOT EXISTS idx_turnos_fecha ON turnos(fecha);
 CREATE INDEX IF NOT EXISTS idx_turnos_estado ON turnos(estado);
 
--- Cotizaciones persistentes (presupuesto para el cliente)
 CREATE TABLE IF NOT EXISTS cotizaciones (
     id SERIAL PRIMARY KEY,
     cliente_nombre VARCHAR(120),
@@ -52,7 +51,6 @@ CREATE TABLE IF NOT EXISTS cotizacion_items (
 CREATE INDEX IF NOT EXISTS idx_cotizacion_items_cotizacion
     ON cotizacion_items(cotizacion_id);
 
--- Ingresos y gastos (movimientos financieros)
 CREATE TABLE IF NOT EXISTS movimientos_financieros (
     id SERIAL PRIMARY KEY,
     tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('ingreso', 'gasto')),
@@ -66,12 +64,8 @@ CREATE TABLE IF NOT EXISTS movimientos_financieros (
 CREATE INDEX IF NOT EXISTS idx_movimientos_fecha ON movimientos_financieros(fecha);
 CREATE INDEX IF NOT EXISTS idx_movimientos_tipo ON movimientos_financieros(tipo);
 
--- Catálogo inicial Baena Barber
+-- Solo dos servicios: Corte y Barba
 INSERT INTO servicios (nombre, precio, duracion_min) VALUES
-    ('Corte clásico', 20000, 30),
-    ('Corte + barba', 30000, 45),
-    ('Afeitado tradicional', 15000, 20),
-    ('Diseño / línea', 10000, 15),
-    ('Corte niño', 15000, 25),
-    ('Barba completa', 18000, 25)
+    ('Corte', 25000, 30),
+    ('Barba', 18000, 20)
 ON CONFLICT DO NOTHING;

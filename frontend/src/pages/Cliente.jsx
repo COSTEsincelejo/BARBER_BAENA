@@ -1,19 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { getContacto, getServicios, crearTurno } from "../api.js";
 
-const emptyTurno = {
+const HORARIOS = ["09:00", "09:15", "09:30"];
+
+const emptyForm = {
   cliente_nombre: "",
   cliente_telefono: "",
   servicio_id: "",
   fecha: "",
   hora: "",
-  notas: "",
 };
+
+function buildWhatsAppAdmin(numero, turno, servicioNombre) {
+  const n = String(numero || "573001234567").replace(/\D/g, "");
+  const mensaje =
+    `Hola Baena Barber, quiero agendar una cita:\n` +
+    `Nombre: ${turno.cliente_nombre}\n` +
+    (turno.cliente_telefono ? `Teléfono: ${turno.cliente_telefono}\n` : "") +
+    `Servicio: ${servicioNombre || "-"}\n` +
+    `Fecha: ${turno.fecha}\n` +
+    `Hora: ${turno.hora}`;
+  return `https://wa.me/${n}?text=${encodeURIComponent(mensaje)}`;
+}
 
 export default function Cliente() {
   const [contacto, setContacto] = useState(null);
   const [servicios, setServicios] = useState([]);
-  const [form, setForm] = useState(emptyTurno);
+  const [form, setForm] = useState(emptyForm);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -34,13 +47,16 @@ export default function Cliente() {
         const wa = import.meta.env.VITE_WHATSAPP || "573001234567";
         const phone = import.meta.env.VITE_PHONE || "+573001234567";
         setContacto({
-          whatsapp: `https://wa.me/${wa}?text=${encodeURIComponent(
-            "Hola Baena Barber, quiero agendar un turno."
-          )}`,
+          whatsapp: `https://wa.me/${wa}`,
           telefono: `tel:${phone}`,
+          numero_whatsapp: wa,
         });
       }
-      setServicios(s || []);
+      // Solo Corte y Barba (por si la DB aún tiene más)
+      const filtrados = (s || []).filter((x) =>
+        ["corte", "barba"].includes(String(x.nombre).toLowerCase())
+      );
+      setServicios(filtrados.length ? filtrados : s || []);
     });
   }, []);
 
@@ -52,21 +68,52 @@ export default function Cliente() {
     e.preventDefault();
     setError("");
     setMsg("");
+
+    if (!form.servicio_id || !form.fecha || !form.hora || !form.cliente_nombre) {
+      setError("Elige servicio, fecha, horario y escribe tu nombre.");
+      return;
+    }
+
     setSaving(true);
+    const servicio = servicios.find((s) => String(s.id) === String(form.servicio_id));
+    const servicioNombre = servicio?.nombre || "";
+
     try {
-      await crearTurno({
-        ...form,
-        servicio_id: form.servicio_id || null,
+      const res = await crearTurno({
+        cliente_nombre: form.cliente_nombre,
+        cliente_telefono: form.cliente_telefono || "",
+        servicio_id: form.servicio_id,
+        fecha: form.fecha,
+        hora: form.hora,
       });
-      setMsg("¡Turno solicitado! Te confirmamos por WhatsApp o llamada.");
-      setForm(emptyTurno);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      const waAdmin =
+        res?.contacto?.whatsapp_barberia ||
+        buildWhatsAppAdmin(
+          contacto?.numero_whatsapp || import.meta.env.VITE_WHATSAPP,
+          form,
+          servicioNombre
+        );
+
+      setMsg("Cita lista. Se abre WhatsApp del administrador para confirmar.");
+      setForm(emptyForm);
+      window.open(waAdmin, "_blank", "noopener,noreferrer");
     } catch (err) {
-      setError(err.message);
+      // Si la API falla, igual enviamos la cita por WhatsApp al admin
+      const waAdmin = buildWhatsAppAdmin(
+        contacto?.numero_whatsapp || import.meta.env.VITE_WHATSAPP,
+        form,
+        servicioNombre
+      );
+      setMsg("Abriendo WhatsApp del administrador con tu cita…");
+      window.open(waAdmin, "_blank", "noopener,noreferrer");
+      if (err?.message) setError(`Nota: ${err.message}`);
     } finally {
       setSaving(false);
     }
   }
+
+  const hoy = new Date().toISOString().slice(0, 10);
 
   return (
     <div className={`client-app ${ready ? "is-ready" : ""}`}>
@@ -107,23 +154,13 @@ export default function Cliente() {
         <p className="client-kicker">Barbería moderna</p>
         <h1 className="client-brand">Baena Barber</h1>
         <p className="client-lead">
-          Cortes precisos, barba impecable y atención al detalle. Agenda tu
-          turno en segundos.
+          Corte y barba. Elige el servicio, el horario y agenda al instante —
+          sin registrarte.
         </p>
         <div className="client-cta">
           <a className="btn btn-primary" href="#agendar">
-            Agendar turno
+            Agendar cita
           </a>
-          {contacto && (
-            <a
-              className="btn btn-wa"
-              href={contacto.whatsapp}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Escribir por WhatsApp
-            </a>
-          )}
         </div>
         {msg && <p className="client-success">{msg}</p>}
       </section>
@@ -131,21 +168,32 @@ export default function Cliente() {
       <section className="client-section" id="servicios">
         <header className="client-section-head">
           <h2>Servicios y precios</h2>
-          <p>Precios claros. Elige el tuyo y agenda abajo.</p>
+          <p>Solo dos servicios. Toca uno para agendar.</p>
         </header>
-        <div className="service-rail">
+        <div className="service-rail service-rail-two">
           {servicios.map((s, i) => (
-            <article
-              className="service-item"
+            <button
+              type="button"
+              className={
+                String(form.servicio_id) === String(s.id)
+                  ? "service-item service-pick active"
+                  : "service-item service-pick"
+              }
               key={s.id}
               style={{ animationDelay: `${i * 0.05}s` }}
+              onClick={() => {
+                setForm({ ...form, servicio_id: String(s.id) });
+                document.getElementById("agendar")?.scrollIntoView({
+                  behavior: "smooth",
+                });
+              }}
             >
               <h3>{s.nombre}</h3>
               <p className="service-meta">{s.duracion_min} min</p>
               <p className="service-price">
                 ${Number(s.precio).toLocaleString("es-CO")}
               </p>
-            </article>
+            </button>
           ))}
           {servicios.length === 0 && (
             <p className="muted">Cargando servicios…</p>
@@ -156,82 +204,76 @@ export default function Cliente() {
       <section className="client-section" id="agendar">
         <header className="client-section-head">
           <h2>Agendar cita</h2>
-          <p>Déjanos tus datos y te confirmamos el horario.</p>
+          <p>
+            Sin registro. Elige fecha y horario; se envía al WhatsApp del
+            administrador.
+          </p>
         </header>
         <form className="client-form" onSubmit={agendar}>
-          <div className="grid-2">
-            <div>
-              <label htmlFor="cliente_nombre">Tu nombre</label>
-              <input
-                id="cliente_nombre"
-                name="cliente_nombre"
-                value={form.cliente_nombre}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="cliente_telefono">WhatsApp</label>
-              <input
-                id="cliente_telefono"
-                name="cliente_telefono"
-                value={form.cliente_telefono}
-                onChange={handleChange}
-                placeholder="573001234567"
-                required
-              />
-            </div>
+          <p className="label-like">Servicio</p>
+          <div className="service-mini-picks">
+            {servicios.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className={
+                  String(form.servicio_id) === String(s.id)
+                    ? "chip active"
+                    : "chip"
+                }
+                onClick={() => setForm({ ...form, servicio_id: String(s.id) })}
+              >
+                {s.nombre} · ${Number(s.precio).toLocaleString("es-CO")}
+              </button>
+            ))}
           </div>
-          <label htmlFor="servicio_id">Servicio</label>
-          <select
-            id="servicio_id"
-            name="servicio_id"
-            value={form.servicio_id}
+
+          <label htmlFor="cliente_nombre">Tu nombre</label>
+          <input
+            id="cliente_nombre"
+            name="cliente_nombre"
+            value={form.cliente_nombre}
+            onChange={handleChange}
+            placeholder="Cómo te llamas"
+            required
+          />
+
+          <label htmlFor="cliente_telefono">Tu WhatsApp (opcional)</label>
+          <input
+            id="cliente_telefono"
+            name="cliente_telefono"
+            value={form.cliente_telefono}
+            onChange={handleChange}
+            placeholder="573001234567"
+          />
+
+          <label htmlFor="fecha">Fecha</label>
+          <input
+            id="fecha"
+            type="date"
+            name="fecha"
+            value={form.fecha}
+            min={hoy}
             onChange={handleChange}
             required
-          >
-            <option value="">Seleccionar…</option>
-            {servicios.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.nombre} — ${Number(s.precio).toLocaleString("es-CO")}
-              </option>
-            ))}
-          </select>
-          <div className="grid-2">
-            <div>
-              <label htmlFor="fecha">Fecha</label>
-              <input
-                id="fecha"
-                type="date"
-                name="fecha"
-                value={form.fecha}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="hora">Hora</label>
-              <input
-                id="hora"
-                type="time"
-                name="hora"
-                value={form.hora}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-          <label htmlFor="notas">Notas</label>
-          <textarea
-            id="notas"
-            name="notas"
-            value={form.notas}
-            onChange={handleChange}
-            rows={2}
-            placeholder="¿Algo que debamos saber?"
           />
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? "Enviando…" : "Solicitar turno"}
+
+          <p className="label-like">Horario</p>
+          <div className="slot-grid" role="group" aria-label="Horarios disponibles">
+            {HORARIOS.map((h) => (
+              <button
+                key={h}
+                type="button"
+                className={form.hora === h ? "slot-btn active" : "slot-btn"}
+                onClick={() => setForm({ ...form, hora: h })}
+              >
+                {h}
+              </button>
+            ))}
+          </div>
+
+          <button type="submit" className="btn btn-wa btn-block" disabled={saving}>
+            {saving ? "Enviando…" : "Agendar y enviar por WhatsApp"}
           </button>
           {error && <p className="error">{error}</p>}
         </form>
@@ -240,7 +282,7 @@ export default function Cliente() {
       <footer className="client-footer">
         <div>
           <strong>Baena Barber</strong>
-          <p>Estilo · Precisión · Cuidado</p>
+          <p>Corte · Barba</p>
         </div>
         <div className="contact-actions">
           {contacto && (

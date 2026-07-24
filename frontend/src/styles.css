@@ -1070,6 +1070,74 @@ tbody tr:hover {
   font-size: 0.85rem;
 }
 
+.service-rail-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 640px;
+}
+
+.service-pick {
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  width: 100%;
+  font: inherit;
+}
+
+.service-pick.active {
+  border-color: var(--line-strong);
+  box-shadow: 0 0 0 1px rgba(212, 168, 75, 0.35), var(--shadow);
+  background: linear-gradient(160deg, rgba(212, 168, 75, 0.16), rgba(255, 255, 255, 0.02));
+}
+
+.service-mini-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.chip,
+.slot-btn {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.chip:hover,
+.slot-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--line-strong);
+}
+
+.chip.active,
+.slot-btn.active {
+  background: linear-gradient(135deg, var(--brass-soft), var(--brass));
+  color: #1a1205;
+  border-color: transparent;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .service-rail-two {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .app,
   .client-app,

@@ -67,9 +67,9 @@ async function crear(req, res) {
     notas,
   } = req.body;
 
-  if (!cliente_nombre || !cliente_telefono || !fecha || !hora) {
+  if (!cliente_nombre || !fecha || !hora) {
     return res.status(400).json({
-      error: "cliente_nombre, cliente_telefono, fecha y hora son requeridos",
+      error: "cliente_nombre, fecha y hora son requeridos",
     });
   }
 
@@ -80,7 +80,7 @@ async function crear(req, res) {
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
       [
         cliente_nombre,
-        cliente_telefono,
+        cliente_telefono || "",
         servicio_id || null,
         barbero || null,
         fecha,
