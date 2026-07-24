@@ -31,15 +31,15 @@ async function crear(req, res) {
   }
 }
 
-// Calcular cotización a partir de una lista de IDs de servicios
+/** @deprecated Preferir POST /api/cotizaciones/preview o POST /api/cotizaciones */
 async function cotizar(req, res) {
-  const { servicio_ids } = req.body; // array de ids
+  const { servicio_ids } = req.body;
   if (!Array.isArray(servicio_ids) || servicio_ids.length === 0) {
     return res.status(400).json({ error: "servicio_ids debe ser un arreglo no vacío" });
   }
   try {
     const { rows } = await pool.query(
-      `SELECT * FROM servicios WHERE id = ANY($1::int[])`,
+      `SELECT * FROM servicios WHERE id = ANY($1::int[]) AND activo = TRUE`,
       [servicio_ids]
     );
     const total = rows.reduce((acc, s) => acc + Number(s.precio), 0);

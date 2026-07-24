@@ -3,7 +3,7 @@ version: "3.9"
 services:
   db:
     image: postgres:16-alpine
-    container_name: barberia_db
+    container_name: baena_barber_db
     restart: unless-stopped
     environment:
       POSTGRES_USER: barberia
@@ -22,7 +22,7 @@ services:
 
   backend:
     build: ./backend
-    container_name: barberia_backend
+    container_name: baena_barber_api
     restart: unless-stopped
     environment:
       DB_HOST: db
@@ -31,9 +31,12 @@ services:
       DB_PASSWORD: barberia123
       DB_NAME: barberia_db
       PORT: 4000
-      # Número de WhatsApp de la barbería (formato internacional, sin +, sin espacios)
-      BARBERSHOP_WHATSAPP: "573001234567"
-      BARBERSHOP_PHONE: "+573001234567"
+      BARBERSHOP_WHATSAPP: "573114001414"
+      BARBERSHOP_PHONE: "+573114001414"
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: baena2026
+      JWT_SECRET: baena-barber-compose-secret
+      NEQUI_NUMERO: "573114001414"
     ports:
       - "4000:4000"
     depends_on:
@@ -42,10 +45,12 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: barberia_frontend
+    container_name: baena_barber_ui
     restart: unless-stopped
     environment:
       VITE_API_URL: http://localhost:4000/api
+      VITE_WHATSAPP: "573114001414"
+      VITE_PHONE: "+573114001414"
     ports:
       - "5173:5173"
     depends_on:

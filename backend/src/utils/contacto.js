@@ -1,25 +1,47 @@
-// Genera un enlace de WhatsApp (wa.me) con mensaje precargado.
-// telefono: número de la BARBERÍA (dueño), no del cliente -- así el barbero recibe el mensaje de confirmación.
+// Enlaces de contacto Baena Barber (wa.me y tel:) — sin API de WhatsApp Business
+
 function linkWhatsApp(telefono, mensaje) {
   const numero = String(telefono).replace(/\D/g, "");
-  const texto = encodeURIComponent(mensaje);
+  const texto = encodeURIComponent(mensaje || "");
   return `https://wa.me/${numero}?text=${texto}`;
 }
 
-// Genera un enlace tel: para llamar directamente
 function linkLlamada(telefono) {
   const numero = String(telefono).replace(/\s+/g, "");
   return `tel:${numero}`;
 }
 
 function mensajeConfirmacionTurno(turno, servicioNombre) {
+  const hora = String(turno.hora || "").slice(0, 5);
+  const fecha = String(turno.fecha || "").slice(0, 10);
   return (
-    `Hola, quiero confirmar mi turno:\n` +
-    `Cliente: ${turno.cliente_nombre}\n` +
+    `Hola Baena Barber, quiero agendar una cita:\n` +
+    `Nombre: ${turno.cliente_nombre}\n` +
+    (turno.cliente_telefono
+      ? `Teléfono: ${turno.cliente_telefono}\n`
+      : "") +
     `Servicio: ${servicioNombre || "-"}\n` +
-    `Fecha: ${turno.fecha} ${turno.hora}\n` +
-    `Barbero: ${turno.barbero || "cualquiera"}`
+    `Fecha: ${fecha}\n` +
+    `Hora: ${hora}`
   );
 }
 
-module.exports = { linkWhatsApp, linkLlamada, mensajeConfirmacionTurno };
+function mensajeCotizacion(cotizacion, items) {
+  const lista = (items || [])
+    .map((i) => `• ${i.nombre_servicio}: $${Number(i.precio).toLocaleString("es-CO")}`)
+    .join("\n");
+  return (
+    `Cotización Baena Barber\n` +
+    (cotizacion.cliente_nombre ? `Cliente: ${cotizacion.cliente_nombre}\n` : "") +
+    `${lista}\n` +
+    `Duración: ${cotizacion.duracion_total} min\n` +
+    `Total: $${Number(cotizacion.total).toLocaleString("es-CO")}`
+  );
+}
+
+module.exports = {
+  linkWhatsApp,
+  linkLlamada,
+  mensajeConfirmacionTurno,
+  mensajeCotizacion,
+};

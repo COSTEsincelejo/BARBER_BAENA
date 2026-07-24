@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: baena-barber-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASSWORD
+        value: baena2026
+      - key: BARBERSHOP_WHATSAPP
+        value: "573114001414"
+      - key: BARBERSHOP_PHONE
+        value: "+573114001414"
+      - key: NEQUI_NUMERO
+        value: "573114001414"
+      - key: ALLOWED_ORIGINS
+        sync: false

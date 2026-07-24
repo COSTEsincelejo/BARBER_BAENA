@@ -1,94 +1,90 @@
-# Barbería — Gestión de Turnos, Cotizaciones e Ingresos/Gastos
+# Baena Barber
 
-Aplicación web full-stack para gestionar una barbería:
+App full-stack para **Baena Barber**: agenda pública, panel admin, historial de clientes, reportes y pagos por Nequi.
 
-- **Turnos**: agendar citas, cambiar estado (pendiente → confirmado → completado → cancelado), y contactar al cliente por **WhatsApp** o **llamada** con un solo clic.
-- **Cotización**: seleccionar servicios y calcular el precio total y la duración estimada antes de agendar.
-- **Ingresos y gastos**: registrar movimientos financieros manuales; al marcar un turno como "completado" se registra el ingreso automáticamente.
-
-## Stack técnico
-
-- **Backend**: Node.js + Express + PostgreSQL (driver `pg`, SQL directo, sin ORM)
-- **Frontend**: React 18 + Vite + React Router
-- **Base de datos**: PostgreSQL 16
-- **Orquestación**: Docker Compose
-
-## Contacto por WhatsApp y llamadas
-
-⚠️ Importante: esta app **no usa la API oficial de WhatsApp Business** (esa requiere una cuenta de Meta Business verificada y aprobación). En su lugar, genera enlaces `wa.me` con el mensaje precargado — al hacer clic se abre WhatsApp (Web o app) con el chat listo para enviar. Es la solución más común y funcional para negocios pequeños sin necesidad de contratar la API de Meta.
-
-Para llamadas se usa el esquema `tel:`, que en celulares abre el marcador directamente.
-
-Configura el número de la barbería en `docker-compose.yml`:
-```yaml
-BARBERSHOP_WHATSAPP: "573001234567"   # sin +, sin espacios
-BARBERSHOP_PHONE: "+573001234567"
-```
-
-## Cómo correr el proyecto
-
-Necesitas Docker y Docker Compose instalados.
-
-```bash
-cd barberia-app
-docker compose up --build
-```
-
-Esto levanta:
-- PostgreSQL en `localhost:5432` (con las tablas y servicios de ejemplo ya creados)
-- Backend (API) en `http://localhost:4000`
-- Frontend en `http://localhost:5173`
-
-Abre `http://localhost:5173` en el navegador.
-
-## Correr sin Docker (modo desarrollo manual)
-
-**Base de datos:** instala PostgreSQL localmente y ejecuta `backend/db/schema.sql` contra una base llamada `barberia_db`.
-
-**Backend:**
-```bash
-cd backend
-npm install
-cp .env.example .env   # ajusta las variables si es necesario
-npm run dev
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Estructura del proyecto
+## Estructura
 
 ```
-barberia-app/
+BARBER_BAENA/
 ├── docker-compose.yml
 ├── backend/
-│   ├── db/schema.sql          # tablas + datos de ejemplo
+│   ├── db/schema.sql
+│   ├── db/migrate_*.sql
 │   └── src/
-│       ├── index.js           # servidor Express
-│       ├── db.js              # conexión PostgreSQL
-│       ├── routes/            # turnos, servicios, finanzas
-│       ├── controllers/       # lógica de negocio
-│       └── utils/contacto.js  # enlaces de WhatsApp / llamada
 └── frontend/
     └── src/
-        ├── App.jsx            # navegación
-        ├── api.js             # cliente API
-        └── pages/              # Turnos, Cotizacion, Finanzas
+        ├── pages/Cliente.jsx   # sitio público
+        ├── pages/Admin.jsx     # panel privado
+        └── panels/             # Citas, Clientes, Reportes, Bloqueos, Caja
 ```
+
+## Paneles
+
+| Ruta | Quién | Qué hace |
+|------|-------|----------|
+| `/` | Cliente | Calendario 9:30–18:00 · Corte/Barba/Combo · WhatsApp al confirmar · pago Nequi |
+| `/admin` | Admin | Login → Citas, Clientes (historial), Reportes, Bloqueos, Caja |
+
+Admin por defecto: usuario `admin` / contraseña `baena2026` (`ADMIN_USER` / `ADMIN_PASSWORD`).
+
+## Funciones nuevas
+
+- **Historial de clientes**: visitas, notas, alergias, preferencias (ej. “fade alto”). Se crea/actualiza el cliente por celular al agendar.
+- **Reportes**: ingresos semana/mes, servicio más vendido, no-shows.
+- **Nequi**: el cliente ve el número (`NEQUI_NUMERO`), copia o avisa por WhatsApp; el admin marca “Marcar Nequi” en Citas.
+
+## Migraciones (DB ya existente)
+
+```bash
+psql ... -f backend/db/migrate_agendamiento.sql
+psql ... -f backend/db/migrate_admin.sql
+psql ... -f backend/db/migrate_clientes_reportes_nequi.sql
+```
+
+Instalaciones nuevas: solo `backend/db/schema.sql`.
 
 ## Modelo de datos
 
-- `servicios` (id, nombre, precio, duracion_min, activo)
-- `turnos` (id, cliente_nombre, cliente_telefono, servicio_id, barbero, fecha, hora, estado, notas)
-- `movimientos_financieros` (id, tipo ingreso/gasto, concepto, monto, fecha, turno_id)
+| Tabla | Propósito |
+|-------|-----------|
+| `servicios` | Catálogo (Corte, Barba, Combo) |
+| `clientes` | Historial: notas, alergias, preferencias |
+| `turnos` | Citas + `pago_estado` / `pago_metodo` / `monto` / `cliente_id` |
+| `movimientos_financieros` | Caja manual + ingresos al completar cita |
+| `admins` / `dias_bloqueados` | Acceso y días sin servicio |
 
-## Próximos pasos sugeridos
+Estados de turno: `pendiente` → `confirmado` → `completado` / `cancelado` / `no_asistio`.  
+Al **completar**, se registra el ingreso en caja. `no_asistio` libera el horario.
 
-- Autenticación para el dueño/barberos (login)
-- Reportes y gráficas (ingresos por mes, servicio más vendido) — se puede usar Chart.js, como en tu proyecto SIPITEX
-- Recordatorios automáticos de turnos (requeriría la API de WhatsApp Business o un servicio como Twilio)
-- Despliegue en un VPS o en Vercel (frontend) + Railway/Render (backend + DB)
+## Variables de entorno
+
+```env
+BARBERSHOP_WHATSAPP=573114001414
+BARBERSHOP_PHONE=+573114001414
+NEQUI_NUMERO=573114001414
+ADMIN_USER=admin
+ADMIN_PASSWORD=baena2026
+JWT_SECRET=cambia-esto
+```
+
+## Cómo correr
+
+```bash
+docker compose up --build
+```
+
+- Frontend: http://localhost:5173  
+- API: http://localhost:4000  
+
+### Sin Docker / Codespaces
+
+1. DB: ejecuta `schema.sql` (o migraciones si ya existía)
+2. Backend: `cd backend && cp .env.example .env && npm install && npm run dev`
+3. Frontend: `cd frontend && cp .env.example .env && npm install && npm run dev`
+
+## Despliegue en Vercel (gratis)
+
+Guía completa paso a paso (Vercel + Render + Neon):
+
+→ [`docs/DESPLIEGUE_VERCEL.md`](docs/DESPLIEGUE_VERCEL.md)
+
