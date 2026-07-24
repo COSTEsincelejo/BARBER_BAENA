@@ -11,7 +11,6 @@ import { slotsConEstadoLocal, formatHoraAmPm } from "../utils/horarios.js";
 
 const emptyForm = {
   cliente_nombre: "",
-  cliente_telefono: "",
   servicio_id: "",
   fecha: "",
   hora: "",
@@ -329,33 +328,17 @@ export default function Cliente() {
             </div>
           </div>
 
-          <div className="grid-2">
-            <div>
-              <label htmlFor="cliente_nombre">Tu nombre</label>
-              <input
-                id="cliente_nombre"
-                name="cliente_nombre"
-                value={form.cliente_nombre}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, cliente_nombre: e.target.value }))
-                }
-                placeholder="Cómo te llamas"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="cliente_telefono">WhatsApp (opcional)</label>
-              <input
-                id="cliente_telefono"
-                name="cliente_telefono"
-                value={form.cliente_telefono}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, cliente_telefono: e.target.value }))
-                }
-                placeholder="573001234567"
-              />
-            </div>
-          </div>
+          <label htmlFor="cliente_nombre">Tu nombre</label>
+          <input
+            id="cliente_nombre"
+            name="cliente_nombre"
+            value={form.cliente_nombre}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, cliente_nombre: e.target.value }))
+            }
+            placeholder="Cómo te llamas"
+            required
+          />
 
           <button type="submit" className="btn btn-wa btn-block" disabled={saving}>
             {saving ? "Abriendo WhatsApp…" : "Confirmar cita por WhatsApp"}
