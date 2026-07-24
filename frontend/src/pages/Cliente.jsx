@@ -80,12 +80,12 @@ export default function Cliente() {
         });
       }
       const defaults = [
-        { id: "local-corte", nombre: "Corte", precio: 25000, duracion_min: 30 },
-        { id: "local-barba", nombre: "Barba", precio: 18000, duracion_min: 20 },
+        { id: "local-corte", nombre: "Corte", precio: 17000, duracion_min: 30 },
+        { id: "local-barba", nombre: "Barba", precio: 10000, duracion_min: 20 },
         {
           id: "local-combo",
           nombre: "Corte + Barba",
-          precio: 38000,
+          precio: 27000,
           duracion_min: 45,
         },
       ];

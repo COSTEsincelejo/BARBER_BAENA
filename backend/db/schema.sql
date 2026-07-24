@@ -71,7 +71,7 @@ CREATE INDEX IF NOT EXISTS idx_movimientos_tipo ON movimientos_financieros(tipo)
 
 -- Servicios: Corte, Barba, Corte + Barba
 INSERT INTO servicios (nombre, precio, duracion_min) VALUES
-    ('Corte', 25000, 30),
-    ('Barba', 18000, 20),
-    ('Corte + Barba', 38000, 45)
+    ('Corte', 17000, 30),
+    ('Barba', 10000, 20),
+    ('Corte + Barba', 27000, 45)
 ON CONFLICT DO NOTHING;
