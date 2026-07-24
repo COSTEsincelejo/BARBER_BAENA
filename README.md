@@ -31,8 +31,8 @@ BARBER_BAENA/
 
 | Ruta | Quién | Qué hace |
 |------|-------|----------|
-| `/` | Cliente | Ver servicios, agendar turno, cotizar, WhatsApp/llamar |
-| `/admin` | Administrador | Gestionar turnos, cotizaciones y caja |
+| `/` | Cliente | Precios de servicios + agendar cita (WhatsApp/llamar). Sin acceso a admin |
+| `/admin` | Administrador | Login con clave → turnos, cotizaciones y caja |
 
 ## Modelo de datos
 

@@ -11,6 +11,9 @@ const TABS = [
   { id: "finanzas", label: "Caja", hint: "Ingresos / gastos" },
 ];
 
+const ADMIN_KEY = "baena_admin_ok";
+const ADMIN_PIN = import.meta.env.VITE_ADMIN_PIN || "baena2026";
+
 function useClock() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -20,7 +23,58 @@ function useClock() {
   return now;
 }
 
+function AdminLogin({ onSuccess }) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+
+  function submit(e) {
+    e.preventDefault();
+    if (pin.trim() === ADMIN_PIN) {
+      sessionStorage.setItem(ADMIN_KEY, "1");
+      onSuccess();
+      return;
+    }
+    setError("Clave incorrecta");
+  }
+
+  return (
+    <div className="app admin-app is-ready">
+      <div className="bg-glow bg-glow-a" aria-hidden="true" />
+      <div className="pole-stripe" aria-hidden="true" />
+      <div className="shell" style={{ maxWidth: 440 }}>
+        <header className="section-head">
+          <h2>Acceso administrador</h2>
+          <p>Solo personal de Baena Barber.</p>
+        </header>
+        <form className="surface form-block" onSubmit={submit}>
+          <label htmlFor="admin_pin">Clave</label>
+          <input
+            id="admin_pin"
+            type="password"
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+            autoFocus
+            required
+          />
+          <button type="submit" className="btn btn-primary">
+            Entrar
+          </button>
+          {error && <p className="error">{error}</p>}
+          <p className="muted" style={{ marginTop: 12 }}>
+            <Link to="/" style={{ color: "inherit" }}>
+              ← Volver al sitio
+            </Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
+  const [authed, setAuthed] = useState(
+    () => sessionStorage.getItem(ADMIN_KEY) === "1"
+  );
   const [tab, setTab] = useState("turnos");
   const [contacto, setContacto] = useState(null);
   const [entered, setEntered] = useState(false);
@@ -32,6 +86,7 @@ export default function Admin() {
   }, []);
 
   useEffect(() => {
+    if (!authed) return;
     getContacto()
       .then(setContacto)
       .catch(() => {
@@ -44,7 +99,11 @@ export default function Admin() {
           telefono: `tel:${phone}`,
         });
       });
-  }, []);
+  }, [authed]);
+
+  if (!authed) {
+    return <AdminLogin onSuccess={() => setAuthed(true)} />;
+  }
 
   const hora = now.toLocaleTimeString("es-CO", {
     hour: "2-digit",
@@ -55,6 +114,11 @@ export default function Admin() {
     day: "numeric",
     month: "short",
   });
+
+  function logout() {
+    sessionStorage.removeItem(ADMIN_KEY);
+    setAuthed(false);
+  }
 
   return (
     <div className={`app admin-app ${entered ? "is-ready" : ""}`}>
@@ -84,8 +148,11 @@ export default function Admin() {
             </div>
             <div className="contact-actions">
               <Link className="btn btn-secondary" to="/">
-                Ver sitio cliente
+                Sitio cliente
               </Link>
+              <button type="button" className="btn btn-call" onClick={logout}>
+                Salir
+              </button>
               {contacto && (
                 <>
                   <a

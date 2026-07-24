@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  getContacto,
-  getServicios,
-  crearTurno,
-  previewCotizacion,
-} from "../api.js";
+import { getContacto, getServicios, crearTurno } from "../api.js";
 
 const emptyTurno = {
   cliente_nombre: "",
@@ -20,8 +14,6 @@ export default function Cliente() {
   const [contacto, setContacto] = useState(null);
   const [servicios, setServicios] = useState([]);
   const [form, setForm] = useState(emptyTurno);
-  const [seleccionados, setSeleccionados] = useState([]);
-  const [preview, setPreview] = useState(null);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -62,15 +54,12 @@ export default function Cliente() {
     setMsg("");
     setSaving(true);
     try {
-      const res = await crearTurno({
+      await crearTurno({
         ...form,
         servicio_id: form.servicio_id || null,
       });
-      setMsg("¡Turno solicitado! Confírmalo por WhatsApp o llamada.");
+      setMsg("¡Turno solicitado! Te confirmamos por WhatsApp o llamada.");
       setForm(emptyTurno);
-      if (res?.contacto?.whatsapp_cliente && contacto) {
-        // mensaje de éxito arriba; el cliente puede usar los botones del nav
-      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(err.message);
@@ -78,32 +67,6 @@ export default function Cliente() {
       setSaving(false);
     }
   }
-
-  function toggleServicio(id) {
-    setSeleccionados((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-    setPreview(null);
-  }
-
-  async function cotizar() {
-    if (!seleccionados.length) return;
-    try {
-      const r = await previewCotizacion(seleccionados);
-      setPreview(r);
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
-  const waCotizacion =
-    contacto && preview
-      ? `https://wa.me/${(contacto.numero_whatsapp || "").replace(/\D/g, "") || "573001234567"}?text=${encodeURIComponent(
-          `Hola Baena Barber, quiero esta cotización:\n${preview.servicios
-            .map((s) => `• ${s.nombre}`)
-            .join("\n")}\nTotal: $${Number(preview.total).toLocaleString("es-CO")}`
-        )}`
-      : contacto?.whatsapp;
 
   return (
     <div className={`client-app ${ready ? "is-ready" : ""}`}>
@@ -124,7 +87,12 @@ export default function Cliente() {
         <div className="client-nav-actions">
           {contacto && (
             <>
-              <a className="btn btn-wa" href={contacto.whatsapp} target="_blank" rel="noreferrer">
+              <a
+                className="btn btn-wa"
+                href={contacto.whatsapp}
+                target="_blank"
+                rel="noreferrer"
+              >
                 WhatsApp
               </a>
               <a className="btn btn-call" href={contacto.telefono}>
@@ -132,9 +100,6 @@ export default function Cliente() {
               </a>
             </>
           )}
-          <Link className="btn btn-secondary" to="/admin">
-            Admin
-          </Link>
         </div>
       </header>
 
@@ -165,8 +130,8 @@ export default function Cliente() {
 
       <section className="client-section" id="servicios">
         <header className="client-section-head">
-          <h2>Servicios</h2>
-          <p>Elige lo que necesitas. Precios claros, sin vueltas.</p>
+          <h2>Servicios y precios</h2>
+          <p>Precios claros. Elige el tuyo y agenda abajo.</p>
         </header>
         <div className="service-rail">
           {servicios.map((s, i) => (
@@ -190,7 +155,7 @@ export default function Cliente() {
 
       <section className="client-section" id="agendar">
         <header className="client-section-head">
-          <h2>Agendar</h2>
+          <h2>Agendar cita</h2>
           <p>Déjanos tus datos y te confirmamos el horario.</p>
         </header>
         <form className="client-form" onSubmit={agendar}>
@@ -272,53 +237,6 @@ export default function Cliente() {
         </form>
       </section>
 
-      <section className="client-section" id="cotizar">
-        <header className="client-section-head">
-          <h2>Cotizar</h2>
-          <p>Arma tu combo y mira el total al momento.</p>
-        </header>
-        <div className="client-quote">
-          <div className="check-list">
-            {servicios.map((s) => (
-              <label className="check-row" key={s.id}>
-                <input
-                  type="checkbox"
-                  checked={seleccionados.includes(s.id)}
-                  onChange={() => toggleServicio(s.id)}
-                />
-                <span>
-                  {s.nombre} — ${Number(s.precio).toLocaleString("es-CO")}
-                </span>
-              </label>
-            ))}
-          </div>
-          <div className="row-actions">
-            <button type="button" className="btn btn-secondary" onClick={cotizar}>
-              Calcular
-            </button>
-            {preview && (
-              <a
-                className="btn btn-wa"
-                href={waCotizacion}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Enviar por WhatsApp
-              </a>
-            )}
-          </div>
-          {preview && (
-            <div className="flash">
-              <p>{preview.servicios.map((s) => s.nombre).join(" · ")}</p>
-              <p className="muted">{preview.duracion_total} min</p>
-              <p className="total">
-                ${Number(preview.total).toLocaleString("es-CO")}
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
       <footer className="client-footer">
         <div>
           <strong>Baena Barber</strong>
@@ -327,7 +245,12 @@ export default function Cliente() {
         <div className="contact-actions">
           {contacto && (
             <>
-              <a className="btn btn-wa" href={contacto.whatsapp} target="_blank" rel="noreferrer">
+              <a
+                className="btn btn-wa"
+                href={contacto.whatsapp}
+                target="_blank"
+                rel="noreferrer"
+              >
                 WhatsApp
               </a>
               <a className="btn btn-call" href={contacto.telefono}>
