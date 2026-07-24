@@ -12,7 +12,22 @@ const bloqueosRouter = require("./routes/bloqueos");
 const { ensureDefaultAdmin } = require("./controllers/authController");
 
 const app = express();
-app.use(cors());
+
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, cb) {
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return cb(null, true);
+      }
+      return cb(null, false);
+    },
+  })
+);
 app.use(express.json());
 
 app.get("/", (_req, res) => {

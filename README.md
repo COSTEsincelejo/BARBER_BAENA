@@ -81,3 +81,10 @@ docker compose up --build
 1. DB: ejecuta `schema.sql` (o migraciones si ya existía)
 2. Backend: `cd backend && cp .env.example .env && npm install && npm run dev`
 3. Frontend: `cd frontend && cp .env.example .env && npm install && npm run dev`
+
+## Despliegue en Vercel (gratis)
+
+Guía completa paso a paso (Vercel + Render + Neon):
+
+→ [`docs/DESPLIEGUE_VERCEL.md`](docs/DESPLIEGUE_VERCEL.md)
+
