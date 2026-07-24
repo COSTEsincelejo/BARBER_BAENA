@@ -1,134 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { getContacto } from "./api.js";
-import PanelTurnos from "./panels/Turnos.jsx";
-import PanelCotizaciones from "./panels/Cotizaciones.jsx";
-import PanelFinanzas from "./panels/Finanzas.jsx";
-
-const TABS = [
-  { id: "turnos", label: "Turnos", hint: "Agenda" },
-  { id: "cotizaciones", label: "Cotizaciones", hint: "Presupuestos" },
-  { id: "finanzas", label: "Caja", hint: "Ingresos / gastos" },
-];
-
-function useClock() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
-}
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Cliente from "./pages/Cliente.jsx";
+import Admin from "./pages/Admin.jsx";
 
 export default function App() {
-  const [tab, setTab] = useState("turnos");
-  const [contacto, setContacto] = useState(null);
-  const [entered, setEntered] = useState(false);
-  const now = useClock();
-
-  useEffect(() => {
-    const t = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(t);
-  }, []);
-
-  useEffect(() => {
-    getContacto()
-      .then(setContacto)
-      .catch(() => {
-        const wa = import.meta.env.VITE_WHATSAPP || "573001234567";
-        const phone = import.meta.env.VITE_PHONE || "+573001234567";
-        setContacto({
-          whatsapp: `https://wa.me/${wa}?text=${encodeURIComponent(
-            "Hola Baena Barber, quiero agendar un turno."
-          )}`,
-          telefono: `tel:${phone}`,
-        });
-      });
-  }, []);
-
-  const hora = now.toLocaleTimeString("es-CO", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const fecha = now.toLocaleDateString("es-CO", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
-
   return (
-    <div className={`app ${entered ? "is-ready" : ""}`}>
-      <div className="bg-glow bg-glow-a" aria-hidden="true" />
-      <div className="bg-glow bg-glow-b" aria-hidden="true" />
-      <div className="pole-stripe" aria-hidden="true" />
-
-      <div className="shell">
-        <header className="hero-bar">
-          <div className="brand-lockup">
-            <div className="brand-mark-wrap">
-              <span className="brand-scissors" aria-hidden="true">
-                ✂
-              </span>
-              <h1 className="brand-mark">Baena Barber</h1>
-            </div>
-            <p className="brand-tag">Estilo · Precisión · Cuidado</p>
-          </div>
-
-          <div className="hero-meta">
-            <div className="live-clock">
-              <span className="live-dot" aria-hidden="true" />
-              <div>
-                <strong>{hora}</strong>
-                <span>{fecha}</span>
-              </div>
-            </div>
-            <div className="contact-actions">
-              {contacto && (
-                <>
-                  <a
-                    className="btn btn-wa"
-                    href={contacto.whatsapp}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span className="btn-ico" aria-hidden="true">
-                      ●
-                    </span>
-                    WhatsApp
-                  </a>
-                  <a className="btn btn-call" href={contacto.telefono}>
-                    <span className="btn-ico" aria-hidden="true">
-                      ☎
-                    </span>
-                    Llamar
-                  </a>
-                </>
-              )}
-            </div>
-          </div>
-        </header>
-
-        <nav className="tabs" role="tablist" aria-label="Secciones del panel">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              className={tab === t.id ? "tab active" : "tab"}
-              onClick={() => setTab(t.id)}
-            >
-              <span className="tab-label">{t.label}</span>
-              <span className="tab-hint">{t.hint}</span>
-            </button>
-          ))}
-        </nav>
-
-        <main className="panel" key={tab}>
-          {tab === "turnos" && <PanelTurnos />}
-          {tab === "cotizaciones" && <PanelCotizaciones />}
-          {tab === "finanzas" && <PanelFinanzas />}
-        </main>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Cliente />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

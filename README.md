@@ -19,10 +19,20 @@ BARBER_BAENA/
 └── frontend/
     ├── .env.example
     └── src/
-        ├── App.jsx                # panel único con pestañas
+        ├── App.jsx                # rutas / (cliente) y /admin
+        ├── pages/
+        │   ├── Cliente.jsx        # sitio del cliente
+        │   └── Admin.jsx          # panel administrador
         ├── api.js
         └── panels/                # Turnos, Cotizaciones, Finanzas
 ```
+
+## Paneles
+
+| Ruta | Quién | Qué hace |
+|------|-------|----------|
+| `/` | Cliente | Ver servicios, agendar turno, cotizar, WhatsApp/llamar |
+| `/admin` | Administrador | Gestionar turnos, cotizaciones y caja |
 
 ## Modelo de datos
 
