@@ -23,6 +23,8 @@ export const getTurnos = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
   return request(`/turnos${qs ? `?${qs}` : ""}`);
 };
+export const getDisponibilidad = (fecha) =>
+  request(`/turnos/disponibilidad?fecha=${encodeURIComponent(fecha)}`);
 export const crearTurno = (data) =>
   request("/turnos", { method: "POST", body: JSON.stringify(data) });
 export const actualizarEstadoTurno = (id, estado) =>

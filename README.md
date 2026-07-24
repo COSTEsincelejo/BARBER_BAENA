@@ -31,12 +31,12 @@ BARBER_BAENA/
 
 | Ruta | Quién | Qué hace |
 |------|-------|----------|
-| `/` | Cliente | Precios Corte/Barba + agendar en 9:00 / 9:15 / 9:30 (sin registro; envía WhatsApp al admin) |
+| `/` | Cliente | Calendario + horarios 9:30–18:00 + Corte/Barba/Combo; guarda cita y avisa por WhatsApp |
 | `/admin` | Administrador | Login con clave → turnos, cotizaciones y caja |
 
 Clave admin por defecto: `baena2026` (`VITE_ADMIN_PIN`).
 
-Si la base ya existía con más servicios, ejecuta `backend/db/seed_corte_barba.sql`.
+Migración de agenda (DB existente): `backend/db/migrate_agendamiento.sql`.
 
 ## Modelo de datos
 

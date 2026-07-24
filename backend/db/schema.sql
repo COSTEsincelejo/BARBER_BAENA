@@ -27,6 +27,11 @@ CREATE TABLE IF NOT EXISTS turnos (
 CREATE INDEX IF NOT EXISTS idx_turnos_fecha ON turnos(fecha);
 CREATE INDEX IF NOT EXISTS idx_turnos_estado ON turnos(estado);
 
+-- Evita dos citas activas en el mismo día/hora
+CREATE UNIQUE INDEX IF NOT EXISTS idx_turnos_fecha_hora_activos
+    ON turnos (fecha, hora)
+    WHERE estado <> 'cancelado';
+
 CREATE TABLE IF NOT EXISTS cotizaciones (
     id SERIAL PRIMARY KEY,
     cliente_nombre VARCHAR(120),
@@ -64,8 +69,9 @@ CREATE TABLE IF NOT EXISTS movimientos_financieros (
 CREATE INDEX IF NOT EXISTS idx_movimientos_fecha ON movimientos_financieros(fecha);
 CREATE INDEX IF NOT EXISTS idx_movimientos_tipo ON movimientos_financieros(tipo);
 
--- Solo dos servicios: Corte y Barba
+-- Servicios: Corte, Barba, Corte + Barba
 INSERT INTO servicios (nombre, precio, duracion_min) VALUES
     ('Corte', 25000, 30),
-    ('Barba', 18000, 20)
+    ('Barba', 18000, 20),
+    ('Corte + Barba', 38000, 45)
 ON CONFLICT DO NOTHING;

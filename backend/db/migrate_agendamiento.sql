@@ -1,18 +1,29 @@
--- Actualiza catálogo a Corte / Barba / Corte + Barba (DB ya existente)
+-- Migración: servicios Corte / Barba / combo + índice anti-duplicados
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_turnos_fecha_hora_activos
+    ON turnos (fecha, hora)
+    WHERE estado <> 'cancelado';
+
 UPDATE servicios SET activo = FALSE
 WHERE lower(nombre) NOT IN ('corte', 'barba', 'corte + barba');
 
 INSERT INTO servicios (nombre, precio, duracion_min, activo)
 SELECT 'Corte', 25000, 30, TRUE
-WHERE NOT EXISTS (SELECT 1 FROM servicios WHERE lower(nombre) = 'corte' AND activo = TRUE);
+WHERE NOT EXISTS (
+  SELECT 1 FROM servicios WHERE lower(nombre) = 'corte' AND activo = TRUE
+);
 
 INSERT INTO servicios (nombre, precio, duracion_min, activo)
 SELECT 'Barba', 18000, 20, TRUE
-WHERE NOT EXISTS (SELECT 1 FROM servicios WHERE lower(nombre) = 'barba' AND activo = TRUE);
+WHERE NOT EXISTS (
+  SELECT 1 FROM servicios WHERE lower(nombre) = 'barba' AND activo = TRUE
+);
 
 INSERT INTO servicios (nombre, precio, duracion_min, activo)
 SELECT 'Corte + Barba', 38000, 45, TRUE
-WHERE NOT EXISTS (SELECT 1 FROM servicios WHERE lower(nombre) = 'corte + barba' AND activo = TRUE);
+WHERE NOT EXISTS (
+  SELECT 1 FROM servicios WHERE lower(nombre) = 'corte + barba' AND activo = TRUE
+);
 
 UPDATE servicios SET precio = 25000, duracion_min = 30, activo = TRUE
 WHERE lower(nombre) = 'corte';
@@ -22,7 +33,3 @@ WHERE lower(nombre) = 'barba';
 
 UPDATE servicios SET precio = 38000, duracion_min = 45, activo = TRUE
 WHERE lower(nombre) = 'corte + barba';
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_turnos_fecha_hora_activos
-    ON turnos (fecha, hora)
-    WHERE estado <> 'cancelado';
