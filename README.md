@@ -1,6 +1,6 @@
 # Baena Barber
 
-Panel full-stack para gestionar **turnos**, **cotizaciones** e **ingresos/gastos**, con contacto directo por WhatsApp (`wa.me`) y llamada (`tel:`).
+App full-stack para **Baena Barber**: agenda pública, panel admin, historial de clientes, reportes y pagos por Nequi.
 
 ## Estructura
 
@@ -8,78 +8,63 @@ Panel full-stack para gestionar **turnos**, **cotizaciones** e **ingresos/gastos
 BARBER_BAENA/
 ├── docker-compose.yml
 ├── backend/
-│   ├── db/schema.sql              # modelo de datos + seed
-│   ├── .env.example
+│   ├── db/schema.sql
+│   ├── db/migrate_*.sql
 │   └── src/
-│       ├── index.js               # Express + rutas API
-│       ├── db.js                  # pool PostgreSQL
-│       ├── routes/                # turnos, servicios, cotizaciones, finanzas
-│       ├── controllers/
-│       └── utils/contacto.js      # wa.me / tel:
 └── frontend/
-    ├── .env.example
     └── src/
-        ├── App.jsx                # rutas / (cliente) y /admin
-        ├── pages/
-        │   ├── Cliente.jsx        # sitio del cliente
-        │   └── Admin.jsx          # panel administrador
-        ├── api.js
-        └── panels/                # Turnos, Cotizaciones, Finanzas
+        ├── pages/Cliente.jsx   # sitio público
+        ├── pages/Admin.jsx     # panel privado
+        └── panels/             # Citas, Clientes, Reportes, Bloqueos, Caja
 ```
 
 ## Paneles
 
 | Ruta | Quién | Qué hace |
 |------|-------|----------|
-| `/` | Cliente | Calendario + horarios 9:30–18:00 + Corte/Barba/Combo; guarda cita y avisa por WhatsApp |
-| `/admin` | Administrador | Login con clave → turnos, cotizaciones y caja |
+| `/` | Cliente | Calendario 9:30–18:00 · Corte/Barba/Combo · WhatsApp al confirmar · pago Nequi |
+| `/admin` | Admin | Login → Citas, Clientes (historial), Reportes, Bloqueos, Caja |
 
-Clave admin por defecto: `baena2026` (`VITE_ADMIN_PIN`).
+Admin por defecto: usuario `admin` / contraseña `baena2026` (`ADMIN_USER` / `ADMIN_PASSWORD`).
 
-Si la DB ya existía, ejecuta también las migraciones:
+## Funciones nuevas
+
+- **Historial de clientes**: visitas, notas, alergias, preferencias (ej. “fade alto”). Se crea/actualiza el cliente por celular al agendar.
+- **Reportes**: ingresos semana/mes, servicio más vendido, no-shows.
+- **Nequi**: el cliente ve el número (`NEQUI_NUMERO`), copia o avisa por WhatsApp; el admin marca “Marcar Nequi” en Citas.
+
+## Migraciones (DB ya existente)
 
 ```bash
 psql ... -f backend/db/migrate_agendamiento.sql
 psql ... -f backend/db/migrate_admin.sql
+psql ... -f backend/db/migrate_clientes_reportes_nequi.sql
 ```
 
-Admin: usuario `admin` / contraseña `baena2026` (variables `ADMIN_USER` / `ADMIN_PASSWORD`).
+Instalaciones nuevas: solo `backend/db/schema.sql`.
 
 ## Modelo de datos
 
 | Tabla | Propósito |
 |-------|-----------|
-| `servicios` | Catálogo (nombre, precio, duración) |
-| `turnos` | Citas: cliente, teléfono, servicio, fecha/hora, estado |
-| `cotizaciones` | Presupuestos persistidos (cliente, total, estado) |
-| `cotizacion_items` | Ítems de cada cotización |
-| `movimientos_financieros` | Ingresos y gastos (`tipo`, monto, concepto, `turno_id` opcional) |
+| `servicios` | Catálogo (Corte, Barba, Combo) |
+| `clientes` | Historial: notas, alergias, preferencias |
+| `turnos` | Citas + `pago_estado` / `pago_metodo` / `monto` / `cliente_id` |
+| `movimientos_financieros` | Caja manual + ingresos al completar cita |
+| `admins` / `dias_bloqueados` | Acceso y días sin servicio |
 
-Estados de turno: `pendiente` → `confirmado` → `completado` / `cancelado`.  
-Al marcar un turno como **completado**, se registra el ingreso automáticamente.
+Estados de turno: `pendiente` → `confirmado` → `completado` / `cancelado` / `no_asistio`.  
+Al **completar**, se registra el ingreso en caja. `no_asistio` libera el horario.
 
-Estados de cotización: `borrador` | `enviada` | `aceptada` | `rechazada`.
+## Variables de entorno
 
-## API REST (resumen)
-
-- `GET/POST /api/turnos` · `PATCH /api/turnos/:id/estado` · `DELETE /api/turnos/:id`
-- `GET/POST /api/servicios` · `DELETE /api/servicios/:id`
-- `GET/POST /api/cotizaciones` · `POST /api/cotizaciones/preview` · `PATCH /api/cotizaciones/:id/estado`
-- `GET/POST /api/finanzas` · `GET /api/finanzas/resumen` · `DELETE /api/finanzas/:id`
-- `GET /api/contacto` · `GET /api/health`
-
-## Contacto WhatsApp / teléfono
-
-No usa la API de WhatsApp Business. Genera enlaces:
-
-- `https://wa.me/<numero>?text=...`
-- `tel:<numero>`
-
-Configura en `docker-compose.yml` o `.env`:
-
-```yaml
-BARBERSHOP_WHATSAPP: "573001234567"   # sin + ni espacios
-BARBERSHOP_PHONE: "+573001234567"
+```env
+BARBERSHOP_WHATSAPP=573001234567
+BARBERSHOP_PHONE=+573001234567
+NEQUI_NUMERO=573001234567
+ADMIN_USER=admin
+ADMIN_PASSWORD=baena2026
+JWT_SECRET=cambia-esto
 ```
 
 ## Cómo correr
@@ -90,10 +75,9 @@ docker compose up --build
 
 - Frontend: http://localhost:5173  
 - API: http://localhost:4000  
-- PostgreSQL: localhost:5432  
 
-### Sin Docker
+### Sin Docker / Codespaces
 
-1. Crea la DB y ejecuta `backend/db/schema.sql`
+1. DB: ejecuta `schema.sql` (o migraciones si ya existía)
 2. Backend: `cd backend && cp .env.example .env && npm install && npm run dev`
 3. Frontend: `cd frontend && cp .env.example .env && npm install && npm run dev`

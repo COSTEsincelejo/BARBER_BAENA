@@ -13,6 +13,7 @@ import { slotsConEstadoLocal, formatHoraAmPm } from "../utils/horarios.js";
 
 const emptyForm = {
   cliente_nombre: "",
+  cliente_telefono: "",
   servicio_id: "",
   fecha: "",
   hora: "",
@@ -36,7 +37,8 @@ function mensajeCitaAdmin(turno, servicioNombre, precio) {
       ? `💰 Precio: $${Number(precio).toLocaleString("es-CO")}\n`
       : "") +
     `📅 Fecha: ${turno.fecha}\n` +
-    `🕐 Hora: ${formatHoraAmPm(turno.hora)}`
+    `🕐 Hora: ${formatHoraAmPm(turno.hora)}\n` +
+    `💳 Pago sugerido: Nequi`
   );
 }
 
@@ -55,11 +57,13 @@ export default function Cliente() {
   const [bloqueos, setBloqueos] = useState({ fechas: [], dias_semana: [] });
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [msg, setMsg] = useState("");
+  const [pagoInfo, setPagoInfo] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [ready, setReady] = useState(false);
 
   const adminNumero = contacto?.numero_whatsapp || ADMIN_WA;
+  const nequiNumero = contacto?.nequi_numero || adminNumero;
   const linkDudas = waLink(adminNumero, MENSAJE_DUDAS);
 
   useEffect(() => {
@@ -162,8 +166,13 @@ export default function Cliente() {
       setError("Escribe tu nombre para confirmar la cita.");
       return;
     }
+    if (!form.cliente_telefono.trim()) {
+      setError("Escribe tu celular para historial y pago Nequi.");
+      return;
+    }
 
     setSaving(true);
+    setPagoInfo(null);
     const servicio = servicios.find(
       (s) => String(s.id) === String(form.servicio_id)
     );
@@ -171,7 +180,7 @@ export default function Cliente() {
     const payload = {
       ...form,
       cliente_nombre: form.cliente_nombre.trim(),
-      cliente_telefono: "",
+      cliente_telefono: form.cliente_telefono.trim(),
     };
 
     const waAdmin = waLink(
@@ -180,29 +189,49 @@ export default function Cliente() {
     );
 
     let guardada = false;
+    let pago = null;
     const esLocal = String(form.servicio_id).startsWith("local-");
     const servicioIdNum = Number(form.servicio_id);
 
     if (!esLocal && !Number.isNaN(servicioIdNum)) {
       try {
-        await crearTurno({
+        const res = await crearTurno({
           cliente_nombre: payload.cliente_nombre,
           cliente_telefono: payload.cliente_telefono,
           servicio_id: servicioIdNum,
           fecha: form.fecha,
           hora: form.hora,
+          pago_metodo: "nequi",
         });
         guardada = true;
+        pago = res?.pago || null;
       } catch {
         // Si la API falla, igual se envía WhatsApp al admin
       }
     }
 
+    if (!pago && servicio?.precio != null) {
+      const monto = Number(servicio.precio);
+      const nequiMsg =
+        `Hola, agendé en Baena Barber.\n` +
+        `Voy a pagar por Nequi $${monto.toLocaleString("es-CO")}\n` +
+        `Servicio: ${servicioNombre}\n` +
+        `Fecha: ${payload.fecha} ${payload.hora}\n` +
+        `Cliente: ${payload.cliente_nombre}`;
+      pago = {
+        nequi_numero: nequiNumero,
+        monto,
+        instrucciones: `Envía $${monto.toLocaleString("es-CO")} por Nequi al ${nequiNumero}`,
+        whatsapp_pago: waLink(adminNumero, nequiMsg),
+      };
+    }
+
     window.open(waAdmin, "_blank", "noopener,noreferrer");
+    setPagoInfo(pago);
     setMsg(
       guardada
-        ? "Cita guardada. WhatsApp abierto para avisar al administrador."
-        : "WhatsApp abierto con tu cita para el administrador."
+        ? "Cita guardada. Avisa al admin y paga por Nequi si quieres."
+        : "WhatsApp abierto. También puedes pagar por Nequi."
     );
     setForm(emptyForm);
     setSlots([]);
@@ -257,6 +286,37 @@ export default function Cliente() {
             administrador por WhatsApp.
           </p>
           {msg && <p className="client-success">{msg}</p>}
+          {pagoInfo && (
+            <div className="nequi-card flash">
+              <h3>Pagar con Nequi</h3>
+              <p>
+                Número: <strong>{pagoInfo.nequi_numero}</strong>
+              </p>
+              <p className="total">
+                ${Number(pagoInfo.monto).toLocaleString("es-CO")}
+              </p>
+              <p className="muted">{pagoInfo.instrucciones}</p>
+              <div className="row-actions">
+                <a
+                  className="btn btn-wa"
+                  href={pagoInfo.whatsapp_pago}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Avisar pago por WhatsApp
+                </a>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() =>
+                    navigator.clipboard?.writeText(String(pagoInfo.nequi_numero))
+                  }
+                >
+                  Copiar número
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -361,6 +421,20 @@ export default function Cliente() {
             placeholder="Cómo te llamas"
             required
           />
+          <label htmlFor="cliente_telefono">Tu celular</label>
+          <input
+            id="cliente_telefono"
+            name="cliente_telefono"
+            value={form.cliente_telefono}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, cliente_telefono: e.target.value }))
+            }
+            placeholder="3001234567"
+            required
+          />
+          <p className="muted" style={{ marginTop: -6, marginBottom: 12 }}>
+            Sirve para tu historial y para confirmar el pago por Nequi.
+          </p>
 
           <button type="submit" className="btn btn-wa btn-block" disabled={saving}>
             {saving ? "Abriendo WhatsApp…" : "Confirmar cita por WhatsApp"}

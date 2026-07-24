@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BrandMark from "../components/BrandMark.jsx";
-import PanelTurnos from "../panels/Turnos.jsx";
-import PanelCotizaciones from "../panels/Cotizaciones.jsx";
 import PanelFinanzas from "../panels/Finanzas.jsx";
 import PanelBloqueos from "../panels/Bloqueos.jsx";
 import PanelCitas from "../panels/Citas.jsx";
+import PanelClientes from "../panels/Clientes.jsx";
+import PanelReportes from "../panels/Reportes.jsx";
 import {
   clearSession,
   getStoredAdmin,
@@ -17,10 +17,10 @@ import { loginAdmin, getMe } from "../api.js";
 
 const TABS = [
   { id: "citas", label: "Citas", hint: "Agenda" },
+  { id: "clientes", label: "Clientes", hint: "Historial" },
+  { id: "reportes", label: "Reportes", hint: "Ingresos / no-shows" },
   { id: "bloqueos", label: "Bloqueos", hint: "Días sin servicio" },
-  { id: "turnos", label: "Turnos (rápido)", hint: "Crear" },
-  { id: "cotizaciones", label: "Cotizaciones", hint: "Presupuestos" },
-  { id: "finanzas", label: "Caja", hint: "Ingresos / gastos" },
+  { id: "finanzas", label: "Caja", hint: "Manual" },
 ];
 
 function AdminLogin({ onSuccess }) {
@@ -198,9 +198,9 @@ export default function Admin() {
 
         <main className="panel" key={tab}>
           {tab === "citas" && <PanelCitas />}
+          {tab === "clientes" && <PanelClientes />}
+          {tab === "reportes" && <PanelReportes />}
           {tab === "bloqueos" && <PanelBloqueos />}
-          {tab === "turnos" && <PanelTurnos />}
-          {tab === "cotizaciones" && <PanelCotizaciones />}
           {tab === "finanzas" && <PanelFinanzas />}
         </main>
       </div>

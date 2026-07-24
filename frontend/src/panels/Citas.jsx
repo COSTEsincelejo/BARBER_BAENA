@@ -3,10 +3,17 @@ import {
   getTurnos,
   actualizarEstadoTurno,
   eliminarTurno,
+  marcarPagoTurno,
 } from "../api.js";
 import { formatHoraAmPm } from "../utils/horarios.js";
 
-const ESTADOS = ["pendiente", "confirmado", "completado", "cancelado"];
+const ESTADOS = [
+  "pendiente",
+  "confirmado",
+  "completado",
+  "cancelado",
+  "no_asistio",
+];
 
 export default function PanelCitas() {
   const [citas, setCitas] = useState([]);
@@ -26,13 +33,11 @@ export default function PanelCitas() {
       if (params.desde ?? desde) filters.desde = params.desde ?? desde;
       if (params.hasta ?? hasta) filters.hasta = params.hasta ?? hasta;
       if (params.estado ?? estado) filters.estado = params.estado ?? estado;
-      // Si hay día exacto, no mezclar con rango
       if (filters.fecha) {
         delete filters.desde;
         delete filters.hasta;
       }
-      const data = await getTurnos(filters);
-      setCitas(data);
+      setCitas(await getTurnos(filters));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -63,6 +68,14 @@ export default function PanelCitas() {
     await cargar();
   }
 
+  async function marcarNequi(id) {
+    await marcarPagoTurno(id, {
+      pago_estado: "pagado",
+      pago_metodo: "nequi",
+    });
+    await cargar();
+  }
+
   async function eliminar(id) {
     if (!confirm("¿Eliminar esta cita?")) return;
     await eliminarTurno(id);
@@ -73,7 +86,7 @@ export default function PanelCitas() {
     <section className="section">
       <header className="section-head">
         <h2>Citas agendadas</h2>
-        <p>Filtra por día o rango, confirma, cancela o elimina.</p>
+        <p>Filtra, confirma, marca no-show o pago Nequi.</p>
       </header>
 
       <form className="surface filter-bar" onSubmit={aplicarFiltros}>
@@ -160,6 +173,7 @@ export default function PanelCitas() {
                   <th>Hora</th>
                   <th>Cliente</th>
                   <th>Servicio</th>
+                  <th>Pago</th>
                   <th>Estado</th>
                   <th></th>
                 </tr>
@@ -178,7 +192,39 @@ export default function PanelCitas() {
                         </>
                       )}
                     </td>
-                    <td>{c.servicio_nombre || "—"}</td>
+                    <td>
+                      {c.servicio_nombre || "—"}
+                      {c.monto != null && (
+                        <>
+                          <br />
+                          <span className="muted">
+                            ${Number(c.monto).toLocaleString("es-CO")}
+                          </span>
+                        </>
+                      )}
+                    </td>
+                    <td>
+                      <span
+                        className={`badge ${
+                          c.pago_estado === "pagado"
+                            ? "badge-completado"
+                            : "badge-pendiente"
+                        }`}
+                      >
+                        {c.pago_estado || "pendiente"}
+                        {c.pago_metodo ? ` · ${c.pago_metodo}` : ""}
+                      </span>
+                      {c.pago_estado !== "pagado" && (
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={{ marginTop: 6, display: "block" }}
+                          onClick={() => marcarNequi(c.id)}
+                        >
+                          Marcar Nequi
+                        </button>
+                      )}
+                    </td>
                     <td>
                       <span className={`badge badge-${c.estado}`}>{c.estado}</span>
                       <select

@@ -12,7 +12,18 @@ router.use(requireAdmin);
 // Citas
 router.get("/turnos", turnos.listar);
 router.patch("/turnos/:id/estado", turnos.actualizarEstado);
+router.patch("/turnos/:id/pago", turnos.marcarPago);
 router.delete("/turnos/:id", turnos.eliminar);
+
+// Clientes
+const clientes = require("../controllers/clientesController");
+router.get("/clientes", clientes.listar);
+router.get("/clientes/:id", clientes.obtener);
+router.patch("/clientes/:id", clientes.actualizar);
+
+// Reportes
+const reportes = require("../controllers/reportesController");
+router.get("/reportes", reportes.resumen);
 
 // Bloqueos
 router.get("/bloqueos", bloqueos.listarAdmin);

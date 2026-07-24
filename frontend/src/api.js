@@ -54,8 +54,32 @@ export const actualizarEstadoTurno = (id, estado) =>
     { method: "PATCH", body: JSON.stringify({ estado }) },
     { auth: true }
   );
+export const marcarPagoTurno = (id, data) =>
+  request(
+    `/admin/turnos/${id}/pago`,
+    { method: "PATCH", body: JSON.stringify(data) },
+    { auth: true }
+  );
 export const eliminarTurno = (id) =>
   request(`/admin/turnos/${id}`, { method: "DELETE" }, { auth: true });
+
+// Admin — clientes
+export const getClientes = (q = "") =>
+  request(`/admin/clientes${q ? `?q=${encodeURIComponent(q)}` : ""}`, {}, { auth: true });
+export const getCliente = (id) =>
+  request(`/admin/clientes/${id}`, {}, { auth: true });
+export const actualizarCliente = (id, data) =>
+  request(
+    `/admin/clientes/${id}`,
+    { method: "PATCH", body: JSON.stringify(data) },
+    { auth: true }
+  );
+
+// Admin — reportes
+export const getReportes = (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return request(`/admin/reportes${qs ? `?${qs}` : ""}`, {}, { auth: true });
+};
 
 // Admin — bloqueos
 export const getBloqueosAdmin = () =>

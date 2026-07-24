@@ -1028,9 +1028,36 @@ tbody tr:hover {
   gap: 12px;
 }
 
-.footer-brand img {
-  border-radius: 10px;
-  border: 1px solid var(--line-strong);
+.nequi-card {
+  margin-top: 16px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 168, 75, 0.35);
+  background:
+    linear-gradient(145deg, rgba(212, 168, 75, 0.12), rgba(0, 0, 0, 0.28)),
+    rgba(18, 18, 18, 0.92);
+}
+
+.nequi-card h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--brass-soft);
+}
+
+.nequi-card .total {
+  margin: 6px 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  color: var(--brass-soft);
+}
+
+.badge-no_asistio {
+  background: rgba(224, 165, 49, 0.15);
+  color: var(--warn);
+  border: 1px solid rgba(224, 165, 49, 0.35);
 }
 
 .hero-brand-panel .client-lead {
