@@ -7,7 +7,7 @@ import {
 } from "../api.js";
 import Calendario from "../components/Calendario.jsx";
 import SelectorHora from "../components/SelectorHora.jsx";
-import { slotsConEstadoLocal } from "../utils/horarios.js";
+import { slotsConEstadoLocal, formatHoraAmPm } from "../utils/horarios.js";
 
 const emptyForm = {
   cliente_nombre: "",
@@ -18,18 +18,29 @@ const emptyForm = {
 };
 
 const SERVICIO_ORDER = ["corte", "barba", "corte + barba"];
+const ADMIN_WA = import.meta.env.VITE_WHATSAPP || "573001234567";
 
-function buildWhatsAppAdmin(numero, turno, servicioNombre) {
-  const n = String(numero || "573001234567").replace(/\D/g, "");
-  const mensaje =
-    `Hola Baena Barber, quiero agendar una cita:\n` +
-    `Nombre: ${turno.cliente_nombre}\n` +
-    (turno.cliente_telefono ? `Teléfono: ${turno.cliente_telefono}\n` : "") +
-    `Servicio: ${servicioNombre || "-"}\n` +
-    `Fecha: ${turno.fecha}\n` +
-    `Hora: ${turno.hora}`;
+function waLink(numero, mensaje) {
+  const n = String(numero || ADMIN_WA).replace(/\D/g, "");
   return `https://wa.me/${n}?text=${encodeURIComponent(mensaje)}`;
 }
+
+function mensajeCitaAdmin(turno, servicioNombre, precio) {
+  return (
+    `✂️ *Nueva cita — Baena Barber*\n\n` +
+    `👤 Cliente: ${turno.cliente_nombre}\n` +
+    (turno.cliente_telefono ? `📱 Tel: ${turno.cliente_telefono}\n` : "") +
+    `💇 Servicio: ${servicioNombre}\n` +
+    (precio != null
+      ? `💰 Precio: $${Number(precio).toLocaleString("es-CO")}\n`
+      : "") +
+    `📅 Fecha: ${turno.fecha}\n` +
+    `🕐 Hora: ${formatHoraAmPm(turno.hora)}`
+  );
+}
+
+const MENSAJE_DUDAS =
+  "Hola Baena Barber, tengo una duda / quiero más información.";
 
 export default function Cliente() {
   const [contacto, setContacto] = useState(null);
@@ -46,6 +57,9 @@ export default function Cliente() {
   const [saving, setSaving] = useState(false);
   const [ready, setReady] = useState(false);
 
+  const adminNumero = contacto?.numero_whatsapp || ADMIN_WA;
+  const linkDudas = waLink(adminNumero, MENSAJE_DUDAS);
+
   useEffect(() => {
     const t = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(t);
@@ -58,12 +72,11 @@ export default function Cliente() {
     ]).then(([c, s]) => {
       if (c) setContacto(c);
       else {
-        const wa = import.meta.env.VITE_WHATSAPP || "573001234567";
         const phone = import.meta.env.VITE_PHONE || "+573001234567";
         setContacto({
-          whatsapp: `https://wa.me/${wa}`,
+          whatsapp: waLink(ADMIN_WA, MENSAJE_DUDAS),
           telefono: `tel:${phone}`,
-          numero_whatsapp: wa,
+          numero_whatsapp: ADMIN_WA,
         });
       }
       const defaults = [
@@ -95,7 +108,6 @@ export default function Cliente() {
       return;
     }
 
-    // Siempre mostrar el reloj de horarios de inmediato (fallback local)
     setSlots(slotsConEstadoLocal(form.fecha));
     setLoadingSlots(true);
 
@@ -106,9 +118,7 @@ export default function Cliente() {
           setSlots(data.slots);
         }
       })
-      .catch(() => {
-        // Mantener slots locales si la API no está arriba
-      })
+      .catch(() => {})
       .finally(() => {
         if (!cancelled) setLoadingSlots(false);
       });
@@ -150,40 +160,46 @@ export default function Cliente() {
     const servicio = servicios.find(
       (s) => String(s.id) === String(form.servicio_id)
     );
-    const servicioNombre = servicio?.nombre || "";
+    const servicioNombre = servicio?.nombre || "Servicio";
+    const payload = {
+      ...form,
+      cliente_nombre: form.cliente_nombre.trim(),
+      cliente_telefono: form.cliente_telefono || "",
+    };
 
-    try {
-      const res = await crearTurno({
-        cliente_nombre: form.cliente_nombre.trim(),
-        cliente_telefono: form.cliente_telefono || "",
-        servicio_id: Number(form.servicio_id),
-        fecha: form.fecha,
-        hora: form.hora,
-      });
+    const waAdmin = waLink(
+      adminNumero,
+      mensajeCitaAdmin(payload, servicioNombre, servicio?.precio)
+    );
 
-      const waAdmin =
-        res?.contacto?.whatsapp_barberia ||
-        buildWhatsAppAdmin(
-          contacto?.numero_whatsapp || import.meta.env.VITE_WHATSAPP,
-          form,
-          servicioNombre
-        );
+    let guardada = false;
+    const esLocal = String(form.servicio_id).startsWith("local-");
+    const servicioIdNum = Number(form.servicio_id);
 
-      setMsg("Cita confirmada y guardada. Se abre WhatsApp del administrador.");
-      setForm(emptyForm);
-      setSlots([]);
-      window.open(waAdmin, "_blank", "noopener,noreferrer");
-    } catch (err) {
-      setError(err.message || "No se pudo agendar");
-      // refrescar slots por si quedó ocupado
-      if (form.fecha) {
-        getDisponibilidad(form.fecha)
-          .then((data) => setSlots(data.slots || []))
-          .catch(() => {});
+    if (!esLocal && !Number.isNaN(servicioIdNum)) {
+      try {
+        await crearTurno({
+          cliente_nombre: payload.cliente_nombre,
+          cliente_telefono: payload.cliente_telefono,
+          servicio_id: servicioIdNum,
+          fecha: form.fecha,
+          hora: form.hora,
+        });
+        guardada = true;
+      } catch {
+        // Si la API falla, igual se envía WhatsApp al admin
       }
-    } finally {
-      setSaving(false);
     }
+
+    window.open(waAdmin, "_blank", "noopener,noreferrer");
+    setMsg(
+      guardada
+        ? "Cita guardada. WhatsApp abierto para avisar al administrador."
+        : "WhatsApp abierto con tu cita para el administrador."
+    );
+    setForm(emptyForm);
+    setSlots([]);
+    setSaving(false);
   }
 
   return (
@@ -203,20 +219,13 @@ export default function Cliente() {
           <strong>Baena Barber</strong>
         </div>
         <div className="client-nav-actions">
-          {contacto && (
-            <>
-              <a
-                className="btn btn-wa"
-                href={contacto.whatsapp}
-                target="_blank"
-                rel="noreferrer"
-              >
-                WhatsApp
-              </a>
-              <a className="btn btn-call" href={contacto.telefono}>
-                Llamar
-              </a>
-            </>
+          <a className="btn btn-wa" href={linkDudas} target="_blank" rel="noreferrer">
+            WhatsApp
+          </a>
+          {contacto?.telefono && (
+            <a className="btn btn-call" href={contacto.telefono}>
+              Llamar
+            </a>
           )}
         </div>
       </header>
@@ -225,7 +234,8 @@ export default function Cliente() {
         <p className="client-kicker">Barbería moderna</p>
         <h1 className="client-brand">Baena Barber</h1>
         <p className="client-lead">
-          Elige el día, el horario disponible y el servicio. Sin registro.
+          Elige el día, el horario y el servicio. Al confirmar se avisa al
+          administrador por WhatsApp.
         </p>
         {msg && <p className="client-success">{msg}</p>}
       </section>
@@ -255,7 +265,7 @@ export default function Cliente() {
       <section className="client-section" id="agendar">
         <header className="client-section-head">
           <h2>Agendar cita</h2>
-          <p>1) Día → 2) Horario (9:30–18:00) → 3) Servicio → Confirmar</p>
+          <p>1) Día → 2) Hora → 3) Servicio → Confirmar (WhatsApp al admin)</p>
         </header>
 
         <form className="client-form client-form-wide" onSubmit={confirmar}>
@@ -278,7 +288,9 @@ export default function Cliente() {
             <div className="booking-step">
               <h3>2. Elige la hora</h3>
               {!form.fecha && (
-                <p className="muted">Selecciona un día para ver el reloj de horarios.</p>
+                <p className="muted">
+                  Selecciona un día para ver el reloj de horarios.
+                </p>
               )}
               {form.fecha && (
                 <SelectorHora
@@ -345,8 +357,8 @@ export default function Cliente() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={saving}>
-            {saving ? "Guardando…" : "Confirmar cita"}
+          <button type="submit" className="btn btn-wa btn-block" disabled={saving}>
+            {saving ? "Abriendo WhatsApp…" : "Confirmar cita por WhatsApp"}
           </button>
           {error && <p className="error">{error}</p>}
         </form>
@@ -358,23 +370,33 @@ export default function Cliente() {
           <p>Corte · Barba · Combo</p>
         </div>
         <div className="contact-actions">
-          {contacto && (
-            <>
-              <a
-                className="btn btn-wa"
-                href={contacto.whatsapp}
-                target="_blank"
-                rel="noreferrer"
-              >
-                WhatsApp
-              </a>
-              <a className="btn btn-call" href={contacto.telefono}>
-                Llamar
-              </a>
-            </>
+          <a className="btn btn-wa" href={linkDudas} target="_blank" rel="noreferrer">
+            WhatsApp
+          </a>
+          {contacto?.telefono && (
+            <a className="btn btn-call" href={contacto.telefono}>
+              Llamar
+            </a>
           )}
         </div>
       </footer>
+
+      {/* Ícono flotante para dudas */}
+      <a
+        className="wa-fab"
+        href={linkDudas}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="WhatsApp — dudas o preguntas"
+        title="¿Dudas? Escríbenos por WhatsApp"
+      >
+        <span className="wa-fab-icon" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="28" height="28" fill="currentColor">
+            <path d="M16.1 3C9.5 3 4.1 8.3 4.1 14.9c0 2.1.6 4.1 1.6 5.9L4 28.1l7.5-1.9c1.7.9 3.6 1.4 5.5 1.4 6.6 0 12-5.4 12-12S22.7 3 16.1 3zm0 21.9c-1.8 0-3.5-.5-5-1.3l-.4-.2-4.4 1.1 1.2-4.3-.2-.4c-1-1.6-1.5-3.4-1.5-5.2 0-5.5 4.5-10 10-10s10 4.5 10 10-4.2 10.3-9.7 10.3zm5.5-7.5c-.3-.1-1.8-.9-2.1-1-.3-.1-.5-.2-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.5 0-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3 1.8.8 2.5.8 3.4.7.5-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4 0-.1-.3-.2-.6-.3z" />
+          </svg>
+        </span>
+        <span className="wa-fab-label">¿Dudas?</span>
+      </a>
     </div>
   );
 }
