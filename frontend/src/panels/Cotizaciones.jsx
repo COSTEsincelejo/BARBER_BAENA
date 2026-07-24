@@ -19,6 +19,7 @@ export default function PanelCotizaciones() {
   const [cliente, setCliente] = useState({ nombre: "", telefono: "" });
   const [nuevo, setNuevo] = useState({ nombre: "", precio: "", duracion_min: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   async function cargar() {
     const [s, c] = await Promise.all([getServicios(), getCotizaciones()]);
@@ -27,7 +28,9 @@ export default function PanelCotizaciones() {
   }
 
   useEffect(() => {
-    cargar().catch((e) => setError(e.message));
+    cargar()
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, []);
 
   function toggle(id) {
@@ -80,7 +83,7 @@ export default function PanelCotizaciones() {
     <section className="section">
       <header className="section-head">
         <h2>Cotizaciones</h2>
-        <p>Arma presupuestos, guárdalos y envíalos por WhatsApp.</p>
+        <p>Arma el presupuesto y envíalo por WhatsApp en un toque.</p>
       </header>
 
       <div className="layout-split">
@@ -88,15 +91,16 @@ export default function PanelCotizaciones() {
           <h3>Nueva cotización</h3>
           <div className="grid-2">
             <div>
-              <label htmlFor="cot_nombre">Cliente (opcional)</label>
+              <label htmlFor="cot_nombre">Cliente</label>
               <input
                 id="cot_nombre"
                 value={cliente.nombre}
                 onChange={(e) => setCliente({ ...cliente, nombre: e.target.value })}
+                placeholder="Opcional"
               />
             </div>
             <div>
-              <label htmlFor="cot_tel">Teléfono (opcional)</label>
+              <label htmlFor="cot_tel">Teléfono</label>
               <input
                 id="cot_tel"
                 value={cliente.telefono}
@@ -141,19 +145,17 @@ export default function PanelCotizaciones() {
 
           {preview && (
             <div className="flash">
-              <p>
-                {preview.servicios.map((s) => s.nombre).join(", ")}
-              </p>
+              <p>{preview.servicios.map((s) => s.nombre).join(" · ")}</p>
               <p className="muted">Duración: {preview.duracion_total} min</p>
               <p className="total">
-                Total: ${Number(preview.total).toLocaleString("es-CO")}
+                ${Number(preview.total).toLocaleString("es-CO")}
               </p>
             </div>
           )}
 
           <hr className="divider" />
 
-          <h3>Agregar servicio al catálogo</h3>
+          <h3>Catálogo</h3>
           <form onSubmit={agregarServicio}>
             <div className="grid-2">
               <div>
@@ -195,93 +197,100 @@ export default function PanelCotizaciones() {
 
         <div className="surface">
           <h3>Historial</h3>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Items</th>
-                  <th>Total</th>
-                  <th>Estado</th>
-                  <th>Contacto</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {cotizaciones.map((c) => (
-                  <tr key={c.id}>
-                    <td>
-                      {c.cliente_nombre || "—"}
-                      {c.cliente_telefono && (
-                        <>
-                          <br />
-                          <span className="muted">{c.cliente_telefono}</span>
-                        </>
-                      )}
-                    </td>
-                    <td>
-                      {(c.items || []).map((i) => i.nombre_servicio).join(", ") ||
-                        "—"}
-                    </td>
-                    <td>${Number(c.total).toLocaleString("es-CO")}</td>
-                    <td>
-                      <select
-                        className="select-compact"
-                        value={c.estado}
-                        onChange={(e) =>
-                          actualizarEstadoCotizacion(c.id, e.target.value).then(
-                            cargar
-                          )
-                        }
-                      >
-                        {ESTADOS.map((es) => (
-                          <option key={es} value={es}>
-                            {es}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="contact-cell">
-                      {c.contacto?.whatsapp_cliente && (
-                        <a
-                          className="link-wa"
-                          href={c.contacto.whatsapp_cliente}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          WA
-                        </a>
-                      )}
-                      {c.contacto?.llamar_cliente && (
-                        <a className="link-call" href={c.contacto.llamar_cliente}>
-                          Tel
-                        </a>
-                      )}
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        onClick={() =>
-                          confirm("¿Eliminar cotización?") &&
-                          eliminarCotizacion(c.id).then(cargar)
-                        }
-                      >
-                        ✕
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {cotizaciones.length === 0 && (
+          {loading ? (
+            <div>
+              <div className="skeleton" />
+              <div className="skeleton" />
+            </div>
+          ) : cotizaciones.length === 0 ? (
+            <div className="empty">
+              <strong>Sin cotizaciones</strong>
+              Selecciona servicios y guarda la primera.
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
                   <tr>
-                    <td colSpan={6} className="muted">
-                      Sin cotizaciones guardadas.
-                    </td>
+                    <th>Cliente</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Contacto</th>
+                    <th></th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {cotizaciones.map((c) => (
+                    <tr key={c.id}>
+                      <td>
+                        {c.cliente_nombre || "—"}
+                        {c.cliente_telefono && (
+                          <>
+                            <br />
+                            <span className="muted">{c.cliente_telefono}</span>
+                          </>
+                        )}
+                      </td>
+                      <td>
+                        {(c.items || []).map((i) => i.nombre_servicio).join(", ") ||
+                          "—"}
+                      </td>
+                      <td>${Number(c.total).toLocaleString("es-CO")}</td>
+                      <td>
+                        <span className={`badge badge-${c.estado}`}>{c.estado}</span>
+                        <select
+                          className="select-compact"
+                          style={{ marginTop: 8, display: "block" }}
+                          value={c.estado}
+                          onChange={(e) =>
+                            actualizarEstadoCotizacion(c.id, e.target.value).then(
+                              cargar
+                            )
+                          }
+                        >
+                          {ESTADOS.map((es) => (
+                            <option key={es} value={es}>
+                              {es}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="contact-cell">
+                        {c.contacto?.whatsapp_cliente && (
+                          <a
+                            className="link-wa"
+                            href={c.contacto.whatsapp_cliente}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            WA
+                          </a>
+                        )}
+                        {c.contacto?.llamar_cliente && (
+                          <a className="link-call" href={c.contacto.llamar_cliente}>
+                            Tel
+                          </a>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          onClick={() =>
+                            confirm("¿Eliminar cotización?") &&
+                            eliminarCotizacion(c.id).then(cargar)
+                          }
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </section>

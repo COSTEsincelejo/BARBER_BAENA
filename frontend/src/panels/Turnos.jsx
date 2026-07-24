@@ -26,6 +26,7 @@ export default function PanelTurnos() {
   const [contacto, setContacto] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   async function cargar() {
     try {
@@ -50,6 +51,7 @@ export default function PanelTurnos() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setSaving(true);
     try {
       const res = await crearTurno({
         ...form,
@@ -60,6 +62,8 @@ export default function PanelTurnos() {
       await cargar();
     } catch (e) {
       setError(e.message);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -78,12 +82,12 @@ export default function PanelTurnos() {
     <section className="section">
       <header className="section-head">
         <h2>Turnos</h2>
-        <p>Agenda citas y contacta al cliente por WhatsApp o llamada.</p>
+        <p>Agenda citas y contacta al cliente al instante.</p>
       </header>
 
       <div className="layout-split">
         <form className="surface form-block" onSubmit={handleSubmit}>
-          <h3>Agendar turno</h3>
+          <h3>Nuevo turno</h3>
           <div className="grid-2">
             <div>
               <label htmlFor="cliente_nombre">Cliente</label>
@@ -92,11 +96,12 @@ export default function PanelTurnos() {
                 name="cliente_nombre"
                 value={form.cliente_nombre}
                 onChange={handleChange}
+                placeholder="Nombre completo"
                 required
               />
             </div>
             <div>
-              <label htmlFor="cliente_telefono">Teléfono / WhatsApp</label>
+              <label htmlFor="cliente_telefono">WhatsApp</label>
               <input
                 id="cliente_telefono"
                 name="cliente_telefono"
@@ -166,17 +171,27 @@ export default function PanelTurnos() {
             value={form.notas}
             onChange={handleChange}
             rows={2}
+            placeholder="Preferencias del cliente…"
           />
-          <button type="submit" className="btn btn-primary">
-            Agendar
+          <button type="submit" className="btn btn-primary" disabled={saving}>
+            {saving ? "Agendando…" : "Agendar turno"}
           </button>
           {error && <p className="error">{error}</p>}
         </form>
 
         <div className="surface">
-          <h3>Agenda</h3>
+          <h3>Agenda viva</h3>
           {loading ? (
-            <p className="muted">Cargando…</p>
+            <div>
+              <div className="skeleton" />
+              <div className="skeleton" />
+              <div className="skeleton" />
+            </div>
+          ) : turnos.length === 0 ? (
+            <div className="empty">
+              <strong>Sin turnos</strong>
+              Agenda el primero desde el formulario.
+            </div>
           ) : (
             <div className="table-wrap">
               <table>
@@ -205,10 +220,13 @@ export default function PanelTurnos() {
                         <span className="muted">{String(t.hora).slice(0, 5)}</span>
                       </td>
                       <td>
+                        <span className={`badge badge-${t.estado}`}>{t.estado}</span>
                         <select
                           className="select-compact"
+                          style={{ marginTop: 8, display: "block" }}
                           value={t.estado}
                           onChange={(e) => cambiarEstado(t.id, e.target.value)}
+                          aria-label={`Estado de ${t.cliente_nombre}`}
                         >
                           {ESTADOS.map((es) => (
                             <option key={es} value={es}>
@@ -246,13 +264,6 @@ export default function PanelTurnos() {
                       </td>
                     </tr>
                   ))}
-                  {turnos.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="muted">
-                        No hay turnos aún.
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
@@ -260,7 +271,7 @@ export default function PanelTurnos() {
 
           {contacto && (
             <div className="flash">
-              <p>Turno creado. Confirma por contacto directo:</p>
+              <p>Turno listo. Confirma por contacto directo:</p>
               <div className="flash-actions">
                 <a
                   className="btn btn-wa"

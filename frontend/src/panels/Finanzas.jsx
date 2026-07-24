@@ -16,6 +16,7 @@ export default function PanelFinanzas() {
     fecha: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   async function cargar() {
     const [m, r] = await Promise.all([getMovimientos(), getResumenFinanciero()]);
@@ -24,7 +25,9 @@ export default function PanelFinanzas() {
   }
 
   useEffect(() => {
-    cargar().catch((e) => setError(e.message));
+    cargar()
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, []);
 
   async function handleSubmit(e) {
@@ -42,10 +45,9 @@ export default function PanelFinanzas() {
   return (
     <section className="section">
       <header className="section-head">
-        <h2>Ingresos y gastos</h2>
+        <h2>Caja</h2>
         <p>
-          Registra movimientos. Al marcar un turno como completado se crea el
-          ingreso automáticamente.
+          Control de ingresos y gastos. Los turnos completados suman solos.
         </p>
       </header>
 
@@ -104,7 +106,7 @@ export default function PanelFinanzas() {
             placeholder="Productos, arriendo, propina…"
             required
           />
-          <label htmlFor="fecha_mov">Fecha (opcional)</label>
+          <label htmlFor="fecha_mov">Fecha</label>
           <input
             id="fecha_mov"
             type="date"
@@ -119,56 +121,61 @@ export default function PanelFinanzas() {
 
         <div className="surface">
           <h3>Historial</h3>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Tipo</th>
-                  <th>Concepto</th>
-                  <th>Monto</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {movimientos.map((m) => (
-                  <tr key={m.id}>
-                    <td>{String(m.fecha).slice(0, 10)}</td>
-                    <td>
-                      <span
-                        className={`pill ${
-                          m.tipo === "ingreso" ? "pill-ok" : "pill-bad"
-                        }`}
-                      >
-                        {m.tipo}
-                      </span>
-                    </td>
-                    <td>{m.concepto}</td>
-                    <td>${Number(m.monto).toLocaleString("es-CO")}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        onClick={() =>
-                          confirm("¿Eliminar movimiento?") &&
-                          eliminarMovimiento(m.id).then(cargar)
-                        }
-                      >
-                        ✕
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {movimientos.length === 0 && (
+          {loading ? (
+            <div>
+              <div className="skeleton" />
+              <div className="skeleton" />
+            </div>
+          ) : movimientos.length === 0 ? (
+            <div className="empty">
+              <strong>Caja vacía</strong>
+              Registra un movimiento o completa un turno.
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
                   <tr>
-                    <td colSpan={5} className="muted">
-                      Sin movimientos registrados.
-                    </td>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Concepto</th>
+                    <th>Monto</th>
+                    <th></th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {movimientos.map((m) => (
+                    <tr key={m.id}>
+                      <td>{String(m.fecha).slice(0, 10)}</td>
+                      <td>
+                        <span
+                          className={`pill ${
+                            m.tipo === "ingreso" ? "pill-ok" : "pill-bad"
+                          }`}
+                        >
+                          {m.tipo}
+                        </span>
+                      </td>
+                      <td>{m.concepto}</td>
+                      <td>${Number(m.monto).toLocaleString("es-CO")}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          onClick={() =>
+                            confirm("¿Eliminar movimiento?") &&
+                            eliminarMovimiento(m.id).then(cargar)
+                          }
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </section>
