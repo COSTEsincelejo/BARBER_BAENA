@@ -33,6 +33,9 @@ services:
       PORT: 4000
       BARBERSHOP_WHATSAPP: "573001234567"
       BARBERSHOP_PHONE: "+573001234567"
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: baena2026
+      JWT_SECRET: baena-barber-compose-secret
     ports:
       - "4000:4000"
     depends_on:

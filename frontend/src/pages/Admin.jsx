@@ -1,41 +1,47 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getContacto } from "../api.js";
 import BrandMark from "../components/BrandMark.jsx";
 import PanelTurnos from "../panels/Turnos.jsx";
 import PanelCotizaciones from "../panels/Cotizaciones.jsx";
 import PanelFinanzas from "../panels/Finanzas.jsx";
+import PanelBloqueos from "../panels/Bloqueos.jsx";
+import PanelCitas from "../panels/Citas.jsx";
+import {
+  clearSession,
+  getStoredAdmin,
+  getToken,
+  isLoggedIn,
+  setSession,
+} from "../auth.js";
+import { loginAdmin, getMe } from "../api.js";
 
 const TABS = [
-  { id: "turnos", label: "Turnos", hint: "Agenda" },
+  { id: "citas", label: "Citas", hint: "Agenda" },
+  { id: "bloqueos", label: "Bloqueos", hint: "Días sin servicio" },
+  { id: "turnos", label: "Turnos (rápido)", hint: "Crear" },
   { id: "cotizaciones", label: "Cotizaciones", hint: "Presupuestos" },
   { id: "finanzas", label: "Caja", hint: "Ingresos / gastos" },
 ];
 
-const ADMIN_KEY = "baena_admin_ok";
-const ADMIN_PIN = import.meta.env.VITE_ADMIN_PIN || "baena2026";
-
-function useClock() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
-}
-
 function AdminLogin({ onSuccess }) {
-  const [pin, setPin] = useState("");
+  const [usuario, setUsuario] = useState("admin");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
-    if (pin.trim() === ADMIN_PIN) {
-      sessionStorage.setItem(ADMIN_KEY, "1");
-      onSuccess();
-      return;
+    setError("");
+    setLoading(true);
+    try {
+      const data = await loginAdmin(usuario.trim(), password);
+      setSession(data.token, data.admin);
+      onSuccess(data.admin);
+    } catch (err) {
+      setError(err.message || "No se pudo iniciar sesión");
+    } finally {
+      setLoading(false);
     }
-    setError("Clave incorrecta");
   }
 
   return (
@@ -54,25 +60,33 @@ function AdminLogin({ onSuccess }) {
         </div>
         <header className="section-head">
           <h2>Acceso administrador</h2>
-          <p>Solo personal de Baena Barber.</p>
+          <p>Área privada. El cliente no tiene acceso aquí.</p>
         </header>
         <form className="surface form-block" onSubmit={submit}>
-          <label htmlFor="admin_pin">Clave</label>
+          <label htmlFor="admin_user">Usuario</label>
           <input
-            id="admin_pin"
-            type="password"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-            autoFocus
+            id="admin_user"
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
+            autoComplete="username"
             required
           />
-          <button type="submit" className="btn btn-primary">
-            Entrar
+          <label htmlFor="admin_pass">Contraseña</label>
+          <input
+            id="admin_pass"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Entrando…" : "Iniciar sesión"}
           </button>
           {error && <p className="error">{error}</p>}
           <p className="muted" style={{ marginTop: 12 }}>
             <Link to="/" style={{ color: "inherit" }}>
-              ← Volver al sitio
+              ← Volver al sitio público
             </Link>
           </p>
         </form>
@@ -82,13 +96,10 @@ function AdminLogin({ onSuccess }) {
 }
 
 export default function Admin() {
-  const [authed, setAuthed] = useState(
-    () => sessionStorage.getItem(ADMIN_KEY) === "1"
-  );
-  const [tab, setTab] = useState("turnos");
-  const [contacto, setContacto] = useState(null);
+  const [admin, setAdmin] = useState(() => getStoredAdmin());
+  const [checking, setChecking] = useState(() => isLoggedIn());
+  const [tab, setTab] = useState("citas");
   const [entered, setEntered] = useState(false);
-  const now = useClock();
 
   useEffect(() => {
     const t = requestAnimationFrame(() => setEntered(true));
@@ -96,38 +107,39 @@ export default function Admin() {
   }, []);
 
   useEffect(() => {
-    if (!authed) return;
-    getContacto()
-      .then(setContacto)
+    if (!getToken()) {
+      setChecking(false);
+      return;
+    }
+    getMe()
+      .then((data) => {
+        setAdmin(data.admin);
+        setChecking(false);
+      })
       .catch(() => {
-        const wa = import.meta.env.VITE_WHATSAPP || "573001234567";
-        const phone = import.meta.env.VITE_PHONE || "+573001234567";
-        setContacto({
-          whatsapp: `https://wa.me/${wa}?text=${encodeURIComponent(
-            "Hola Baena Barber, quiero agendar un turno."
-          )}`,
-          telefono: `tel:${phone}`,
-        });
+        clearSession();
+        setAdmin(null);
+        setChecking(false);
       });
-  }, [authed]);
+  }, []);
 
-  if (!authed) {
-    return <AdminLogin onSuccess={() => setAuthed(true)} />;
+  if (checking) {
+    return (
+      <div className="app admin-app is-ready">
+        <div className="shell">
+          <p className="muted">Verificando sesión…</p>
+        </div>
+      </div>
+    );
   }
 
-  const hora = now.toLocaleTimeString("es-CO", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const fecha = now.toLocaleDateString("es-CO", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
+  if (!admin) {
+    return <AdminLogin onSuccess={setAdmin} />;
+  }
 
   function logout() {
-    sessionStorage.removeItem(ADMIN_KEY);
-    setAuthed(false);
+    clearSession();
+    setAdmin(null);
   }
 
   return (
@@ -149,46 +161,26 @@ export default function Admin() {
               />
               <div>
                 <BrandMark variant="compact" />
-                <p className="brand-tag">Panel administrador</p>
+                <p className="brand-tag">
+                  Panel privado · {admin.usuario}
+                </p>
               </div>
             </div>
           </div>
 
           <div className="hero-meta">
-            <div className="live-clock">
-              <span className="live-dot" aria-hidden="true" />
-              <div>
-                <strong>{hora}</strong>
-                <span>{fecha}</span>
-              </div>
-            </div>
             <div className="contact-actions">
               <Link className="btn btn-secondary" to="/">
                 Sitio cliente
               </Link>
               <button type="button" className="btn btn-call" onClick={logout}>
-                Salir
+                Cerrar sesión
               </button>
-              {contacto && (
-                <>
-                  <a
-                    className="btn btn-wa"
-                    href={contacto.whatsapp}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    WhatsApp
-                  </a>
-                  <a className="btn btn-call" href={contacto.telefono}>
-                    Llamar
-                  </a>
-                </>
-              )}
             </div>
           </div>
         </header>
 
-        <nav className="tabs" role="tablist" aria-label="Secciones del admin">
+        <nav className="tabs tabs-admin" role="tablist" aria-label="Admin">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -205,6 +197,8 @@ export default function Admin() {
         </nav>
 
         <main className="panel" key={tab}>
+          {tab === "citas" && <PanelCitas />}
+          {tab === "bloqueos" && <PanelBloqueos />}
           {tab === "turnos" && <PanelTurnos />}
           {tab === "cotizaciones" && <PanelCotizaciones />}
           {tab === "finanzas" && <PanelFinanzas />}

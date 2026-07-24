@@ -6,12 +6,15 @@ const turnosRouter = require("./routes/turnos");
 const serviciosRouter = require("./routes/servicios");
 const finanzasRouter = require("./routes/finanzas");
 const cotizacionesRouter = require("./routes/cotizaciones");
+const authRouter = require("./routes/auth");
+const adminRouter = require("./routes/admin");
+const bloqueosRouter = require("./routes/bloqueos");
+const { ensureDefaultAdmin } = require("./controllers/authController");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// La UI no vive aquí: este puerto es solo la API.
 app.get("/", (_req, res) => {
   res.type("html").send(`<!doctype html>
 <html lang="es"><head><meta charset="utf-8"/><title>Baena Barber API</title>
@@ -23,8 +26,7 @@ app.get("/", (_req, res) => {
   p{line-height:1.5;color:#9a9286}
 </style></head><body><main>
   <h1>Baena Barber — API</h1>
-  <p>Estás en el puerto <code>4000</code> (backend). La interfaz está en el puerto <code>5173</code>.</p>
-  <p>En Codespaces: Ports → abre <strong>5173</strong>, o corre <code>cd frontend && npm run dev</code>.</p>
+  <p>Puerto <code>4000</code> (API). UI en <code>5173</code>.</p>
   <p>Health: <a href="/api/health" style="color:#d4a84b">/api/health</a></p>
 </main></body></html>`);
 });
@@ -45,12 +47,25 @@ app.get("/api/contacto", (_req, res) => {
   });
 });
 
+// Público
+app.use("/api/auth", authRouter);
 app.use("/api/turnos", turnosRouter);
-app.use("/api/servicios", serviciosRouter);
-app.use("/api/finanzas", finanzasRouter);
-app.use("/api/cotizaciones", cotizacionesRouter);
+app.use("/api/servicios", serviciosRouter); // GET list público
+app.use("/api/bloqueos", bloqueosRouter);
+
+// Admin protegido
+app.use("/api/admin", adminRouter);
+
+// Compat: finanzas/cotizaciones solo vía /api/admin (404 en rutas viejas sin auth)
+app.use("/api/finanzas", (_req, res) =>
+  res.status(401).json({ error: "Usa /api/admin/finanzas con autenticación" })
+);
+app.use("/api/cotizaciones", (_req, res) =>
+  res.status(401).json({ error: "Usa /api/admin/cotizaciones con autenticación" })
+);
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Baena Barber API en http://localhost:${PORT}`);
+  await ensureDefaultAdmin();
 });

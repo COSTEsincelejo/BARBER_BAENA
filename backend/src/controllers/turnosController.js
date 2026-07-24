@@ -10,6 +10,7 @@ const {
   esHorarioLaboral,
   esFechaPasada,
 } = require("../utils/horarios");
+const { esDiaBloqueado } = require("./bloqueosController");
 
 const BARBERSHOP_WHATSAPP = process.env.BARBERSHOP_WHATSAPP || "573000000000";
 const BARBERSHOP_PHONE = process.env.BARBERSHOP_PHONE || "+573000000000";
@@ -26,7 +27,7 @@ function contactoTurno(clienteTelefono, mensaje) {
 }
 
 async function listar(req, res) {
-  const { fecha, estado } = req.query;
+  const { fecha, estado, desde, hasta } = req.query;
   try {
     let query = `
       SELECT t.*, s.nombre AS servicio_nombre, s.precio AS servicio_precio
@@ -38,6 +39,14 @@ async function listar(req, res) {
     if (fecha) {
       params.push(fecha);
       query += ` AND t.fecha = $${params.length}`;
+    }
+    if (desde) {
+      params.push(desde);
+      query += ` AND t.fecha >= $${params.length}`;
+    }
+    if (hasta) {
+      params.push(hasta);
+      query += ` AND t.fecha <= $${params.length}`;
     }
     if (estado) {
       params.push(estado);
@@ -75,6 +84,7 @@ async function disponibilidad(req, res) {
       cierre: "18:00",
       intervalo_min: 30,
       pasado: true,
+      bloqueado: false,
       slots: generarSlotsLaborales().map((hora) => ({
         hora,
         disponible: false,
@@ -84,6 +94,21 @@ async function disponibilidad(req, res) {
   }
 
   try {
+    if (await esDiaBloqueado(fecha)) {
+      return res.json({
+        fecha,
+        apertura: "09:30",
+        cierre: "18:00",
+        intervalo_min: 30,
+        pasado: false,
+        bloqueado: true,
+        slots: generarSlotsLaborales().map((hora) => ({
+          hora,
+          disponible: false,
+          motivo: "bloqueado",
+        })),
+      });
+    }
     const { rows } = await pool.query(
       `SELECT to_char(hora, 'HH24:MI') AS hora
        FROM turnos
@@ -115,6 +140,7 @@ async function disponibilidad(req, res) {
       cierre: "18:00",
       intervalo_min: 30,
       pasado: false,
+      bloqueado: false,
       slots,
     });
   } catch (err) {
@@ -145,6 +171,10 @@ async function crear(req, res) {
 
   if (esFechaPasada(fechaNorm)) {
     return res.status(400).json({ error: "No se pueden agendar citas en días pasados" });
+  }
+
+  if (await esDiaBloqueado(fechaNorm)) {
+    return res.status(400).json({ error: "Ese día no hay servicio (día bloqueado)" });
   }
 
   if (!horaNorm || !esHorarioLaboral(horaNorm)) {

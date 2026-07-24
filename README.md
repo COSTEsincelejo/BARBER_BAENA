@@ -36,7 +36,14 @@ BARBER_BAENA/
 
 Clave admin por defecto: `baena2026` (`VITE_ADMIN_PIN`).
 
-Migración de agenda (DB existente): `backend/db/migrate_agendamiento.sql`.
+Si la DB ya existía, ejecuta también las migraciones:
+
+```bash
+psql ... -f backend/db/migrate_agendamiento.sql
+psql ... -f backend/db/migrate_admin.sql
+```
+
+Admin: usuario `admin` / contraseña `baena2026` (variables `ADMIN_USER` / `ADMIN_PASSWORD`).
 
 ## Modelo de datos
 

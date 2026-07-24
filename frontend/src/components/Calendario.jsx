@@ -27,16 +27,30 @@ function startOfToday() {
 }
 
 /**
- * Calendario mensual: días pasados bloqueados.
+ * Calendario mensual.
+ * bloqueos: { fechas: string[], dias_semana: number[] } (0=domingo)
  */
-export default function Calendario({ value, onChange, month, onMonthChange }) {
+export default function Calendario({
+  value,
+  onChange,
+  month,
+  onMonthChange,
+  bloqueos = { fechas: [], dias_semana: [] },
+}) {
   const hoy = startOfToday();
+  const fechasBloq = useMemo(
+    () => new Set(bloqueos.fechas || []),
+    [bloqueos.fechas]
+  );
+  const diasBloq = useMemo(
+    () => new Set((bloqueos.dias_semana || []).map(Number)),
+    [bloqueos.dias_semana]
+  );
 
   const cells = useMemo(() => {
     const y = month.getFullYear();
     const m = month.getMonth();
     const first = new Date(y, m, 1);
-    // Lunes = 0 … Domingo = 6
     const offset = (first.getDay() + 6) % 7;
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     const list = [];
@@ -50,11 +64,20 @@ export default function Calendario({ value, onChange, month, onMonthChange }) {
       date.setHours(0, 0, 0, 0);
       const iso = toISODate(y, m, d);
       const pasado = date < hoy;
-      list.push({ type: "day", key: iso, day: d, iso, pasado });
+      const bloqueado = fechasBloq.has(iso) || diasBloq.has(date.getDay());
+      list.push({
+        type: "day",
+        key: iso,
+        day: d,
+        iso,
+        pasado,
+        bloqueado,
+        disabled: pasado || bloqueado,
+      });
     }
 
     return list;
-  }, [month, hoy]);
+  }, [month, hoy, fechasBloq, diasBloq]);
 
   function prevMonth() {
     onMonthChange(new Date(month.getFullYear(), month.getMonth() - 1, 1));
@@ -66,7 +89,8 @@ export default function Calendario({ value, onChange, month, onMonthChange }) {
 
   const canPrev =
     month.getFullYear() > hoy.getFullYear() ||
-    (month.getFullYear() === hoy.getFullYear() && month.getMonth() > hoy.getMonth());
+    (month.getFullYear() === hoy.getFullYear() &&
+      month.getMonth() > hoy.getMonth());
 
   return (
     <div className="calendar">
@@ -109,16 +133,24 @@ export default function Calendario({ value, onChange, month, onMonthChange }) {
             <button
               key={c.key}
               type="button"
-              disabled={c.pasado}
+              disabled={c.disabled}
               className={[
                 "calendar-cell",
                 "day",
                 c.pasado ? "past" : "",
+                c.bloqueado ? "blocked" : "",
                 selected ? "selected" : "",
               ]
                 .filter(Boolean)
                 .join(" ")}
               onClick={() => onChange(c.iso)}
+              title={
+                c.bloqueado
+                  ? "Sin servicio"
+                  : c.pasado
+                    ? "Día pasado"
+                    : c.iso
+              }
             >
               {c.day}
             </button>

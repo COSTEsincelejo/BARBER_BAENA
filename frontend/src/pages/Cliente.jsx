@@ -4,6 +4,7 @@ import {
   getServicios,
   crearTurno,
   getDisponibilidad,
+  getBloqueosPublico,
 } from "../api.js";
 import Calendario from "../components/Calendario.jsx";
 import SelectorHora from "../components/SelectorHora.jsx";
@@ -51,6 +52,7 @@ export default function Cliente() {
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
   const [slots, setSlots] = useState([]);
+  const [bloqueos, setBloqueos] = useState({ fechas: [], dias_semana: [] });
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
@@ -69,7 +71,8 @@ export default function Cliente() {
     Promise.all([
       getContacto().catch(() => null),
       getServicios().catch(() => []),
-    ]).then(([c, s]) => {
+      getBloqueosPublico().catch(() => ({ fechas: [], dias_semana: [] })),
+    ]).then(([c, s, b]) => {
       if (c) setContacto(c);
       else {
         const phone = import.meta.env.VITE_PHONE || "+573001234567";
@@ -79,6 +82,10 @@ export default function Cliente() {
           numero_whatsapp: ADMIN_WA,
         });
       }
+      setBloqueos({
+        fechas: b?.fechas || [],
+        dias_semana: b?.dias_semana || [],
+      });
       const defaults = [
         { id: "local-corte", nombre: "Corte", precio: 17000, duracion_min: 30 },
         { id: "local-barba", nombre: "Barba", precio: 10000, duracion_min: 20 },
@@ -290,6 +297,7 @@ export default function Cliente() {
                 onChange={pickFecha}
                 month={month}
                 onMonthChange={setMonth}
+                bloqueos={bloqueos}
               />
               {form.fecha && (
                 <p className="muted" style={{ marginTop: 10 }}>
