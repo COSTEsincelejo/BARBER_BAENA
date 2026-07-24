@@ -6,6 +6,8 @@ import {
   getDisponibilidad,
 } from "../api.js";
 import Calendario from "../components/Calendario.jsx";
+import SelectorHora from "../components/SelectorHora.jsx";
+import { slotsConEstadoLocal } from "../utils/horarios.js";
 
 const emptyForm = {
   cliente_nombre: "",
@@ -64,6 +66,16 @@ export default function Cliente() {
           numero_whatsapp: wa,
         });
       }
+      const defaults = [
+        { id: "local-corte", nombre: "Corte", precio: 25000, duracion_min: 30 },
+        { id: "local-barba", nombre: "Barba", precio: 18000, duracion_min: 20 },
+        {
+          id: "local-combo",
+          nombre: "Corte + Barba",
+          precio: 38000,
+          duracion_min: 45,
+        },
+      ];
       const list = (s || [])
         .filter((x) =>
           SERVICIO_ORDER.includes(String(x.nombre).toLowerCase())
@@ -73,7 +85,7 @@ export default function Cliente() {
             SERVICIO_ORDER.indexOf(String(a.nombre).toLowerCase()) -
             SERVICIO_ORDER.indexOf(String(b.nombre).toLowerCase())
         );
-      setServicios(list.length ? list : s || []);
+      setServicios(list.length ? list : defaults);
     });
   }, []);
 
@@ -82,21 +94,25 @@ export default function Cliente() {
       setSlots([]);
       return;
     }
-    let cancelled = false;
+
+    // Siempre mostrar el reloj de horarios de inmediato (fallback local)
+    setSlots(slotsConEstadoLocal(form.fecha));
     setLoadingSlots(true);
+
+    let cancelled = false;
     getDisponibilidad(form.fecha)
       .then((data) => {
-        if (!cancelled) setSlots(data.slots || []);
-      })
-      .catch((e) => {
-        if (!cancelled) {
-          setError(e.message);
-          setSlots([]);
+        if (!cancelled && Array.isArray(data.slots) && data.slots.length) {
+          setSlots(data.slots);
         }
+      })
+      .catch(() => {
+        // Mantener slots locales si la API no está arriba
       })
       .finally(() => {
         if (!cancelled) setLoadingSlots(false);
       });
+
     return () => {
       cancelled = true;
     };
@@ -260,45 +276,20 @@ export default function Cliente() {
             </div>
 
             <div className="booking-step">
-              <h3>2. Horario laboral</h3>
+              <h3>2. Elige la hora</h3>
               {!form.fecha && (
-                <p className="muted">Selecciona un día para ver horarios.</p>
+                <p className="muted">Selecciona un día para ver el reloj de horarios.</p>
               )}
-              {form.fecha && loadingSlots && (
-                <p className="muted">Cargando horarios…</p>
-              )}
-              {form.fecha && !loadingSlots && (
-                <div className="slot-grid slot-grid-dense" role="group" aria-label="Horarios">
-                  {slots.map((s) => (
-                    <button
-                      key={s.hora}
-                      type="button"
-                      disabled={!s.disponible}
-                      className={[
-                        "slot-btn",
-                        form.hora === s.hora ? "active" : "",
-                        !s.disponible ? "busy" : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      onClick={() =>
-                        setForm((f) => ({ ...f, hora: s.hora }))
-                      }
-                      title={
-                        s.disponible
-                          ? "Disponible"
-                          : s.motivo === "ocupado"
-                            ? "Ocupado"
-                            : "No disponible"
-                      }
-                    >
-                      {s.hora}
-                    </button>
-                  ))}
-                </div>
+              {form.fecha && (
+                <SelectorHora
+                  slots={slots}
+                  value={form.hora}
+                  loading={loadingSlots}
+                  onChange={(hora) => setForm((f) => ({ ...f, hora }))}
+                />
               )}
               <p className="muted slot-legend">
-                Atención 9:30 a.m. – 6:00 p.m. · cada 30 min · gris = ocupado /
+                Atención 9:30 a.m. – 6:00 p.m. · cada 30 min · tachado = ocupado /
                 pasado
               </p>
             </div>
