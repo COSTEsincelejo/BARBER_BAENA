@@ -13,14 +13,12 @@ async function request(path, options = {}) {
   return res.json();
 }
 
-// Servicios
+export const getContacto = () => request("/contacto");
+
 export const getServicios = () => request("/servicios");
 export const crearServicio = (data) =>
   request("/servicios", { method: "POST", body: JSON.stringify(data) });
-export const cotizar = (servicio_ids) =>
-  request("/servicios/cotizar", { method: "POST", body: JSON.stringify({ servicio_ids }) });
 
-// Turnos
 export const getTurnos = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
   return request(`/turnos${qs ? `?${qs}` : ""}`);
@@ -31,7 +29,22 @@ export const actualizarEstadoTurno = (id, estado) =>
   request(`/turnos/${id}/estado`, { method: "PATCH", body: JSON.stringify({ estado }) });
 export const eliminarTurno = (id) => request(`/turnos/${id}`, { method: "DELETE" });
 
-// Finanzas
+export const getCotizaciones = () => request("/cotizaciones");
+export const previewCotizacion = (servicio_ids) =>
+  request("/cotizaciones/preview", {
+    method: "POST",
+    body: JSON.stringify({ servicio_ids }),
+  });
+export const crearCotizacion = (data) =>
+  request("/cotizaciones", { method: "POST", body: JSON.stringify(data) });
+export const actualizarEstadoCotizacion = (id, estado) =>
+  request(`/cotizaciones/${id}/estado`, {
+    method: "PATCH",
+    body: JSON.stringify({ estado }),
+  });
+export const eliminarCotizacion = (id) =>
+  request(`/cotizaciones/${id}`, { method: "DELETE" });
+
 export const getMovimientos = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
   return request(`/finanzas${qs ? `?${qs}` : ""}`);
@@ -42,4 +55,5 @@ export const getResumenFinanciero = (params = {}) => {
 };
 export const crearMovimiento = (data) =>
   request("/finanzas", { method: "POST", body: JSON.stringify(data) });
-export const eliminarMovimiento = (id) => request(`/finanzas/${id}`, { method: "DELETE" });
+export const eliminarMovimiento = (id) =>
+  request(`/finanzas/${id}`, { method: "DELETE" });

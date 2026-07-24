@@ -1,7 +1,7 @@
 {
-  "name": "barberia-backend",
+  "name": "baena-barber-backend",
   "version": "1.0.0",
-  "description": "API para gestión de turnos, cotizaciones e ingresos/gastos de barbería",
+  "description": "API REST de Baena Barber — turnos, cotizaciones e ingresos/gastos",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
