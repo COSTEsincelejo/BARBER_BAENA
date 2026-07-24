@@ -28,6 +28,8 @@ html,
 body,
 #root {
   min-height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -36,6 +38,8 @@ body {
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 button,
@@ -789,50 +793,13 @@ tbody tr:hover {
   }
 }
 
-@media (max-width: 900px) {
-  .pole-stripe {
-    width: 6px;
-  }
-
-  .shell {
-    padding: 20px 16px 40px 18px;
-  }
-
-  .tabs,
-  .layout-split,
-  .stats,
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-bar {
-    align-items: flex-start;
-  }
-
-  .client-nav {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .client-hero {
-    min-height: auto;
-    padding: 48px 18px 40px 24px;
-  }
-
-  .service-rail {
-    grid-template-columns: 1fr;
-  }
-
-  .client-footer {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
 /* ——— Sitio cliente ——— */
 .client-app {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.5s ease, transform 0.5s ease;
@@ -1105,6 +1072,10 @@ tbody tr:hover {
   padding: 10px 14px;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
@@ -1343,27 +1314,250 @@ tbody tr:hover {
   padding-right: 4px;
 }
 
+@media (max-width: 1100px) {
+  .shell {
+    padding: 22px 16px 48px 20px;
+  }
+
+  .client-nav,
+  .client-hero,
+  .client-section,
+  .client-footer {
+    padding-left: 18px;
+    padding-right: 16px;
+  }
+}
+
 @media (max-width: 900px) {
+  .pole-stripe {
+    width: 5px;
+  }
+
+  .shell {
+    padding: 16px 12px 40px 14px;
+  }
+
+  .hero-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .hero-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .contact-actions {
+    width: 100%;
+  }
+
+  .contact-actions .btn {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .tabs {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tab {
+    min-height: 52px;
+  }
+
+  .layout-split,
+  .stats,
+  .grid-2,
+  .booking-steps,
+  .service-rail,
   .service-rail-two {
     grid-template-columns: 1fr;
   }
 
-  .booking-steps {
+  .client-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding-top: 14px;
+  }
+
+  .client-nav-actions {
+    width: 100%;
+  }
+
+  .client-nav-actions .btn {
+    flex: 1;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .client-hero,
+  .client-hero-compact {
+    min-height: auto;
+    padding: 28px 16px 24px 18px;
+  }
+
+  .client-brand {
+    font-size: clamp(2.6rem, 14vw, 4rem);
+    word-break: break-word;
+  }
+
+  .client-lead {
+    font-size: 1rem;
+  }
+
+  .client-cta {
+    width: 100%;
+  }
+
+  .client-cta .btn {
+    flex: 1 1 100%;
+    min-height: 48px;
+    justify-content: center;
+  }
+
+  .client-section {
+    padding: 20px 16px 28px 18px;
+  }
+
+  .client-form,
+  .client-form-wide,
+  .client-quote {
+    max-width: 100%;
+    padding: 14px;
+  }
+
+  .client-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 20px 16px 28px 18px;
+  }
+
+  .slot-grid,
+  .slot-grid-dense {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: none;
+  }
+
+  .slot-btn,
+  .chip,
+  .calendar-nav,
+  .calendar-cell.day {
+    min-height: 44px;
+  }
+
+  .calendar {
+    padding: 10px;
+  }
+
+  .calendar-weekdays span {
+    font-size: 0.65rem;
+  }
+
+  .calendar-cell {
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+
+  .clock-readout strong {
+    font-size: 1.45rem;
+  }
+
+  .service-mini-picks {
+    display: grid;
     grid-template-columns: 1fr;
   }
 
-  .slot-grid-dense {
-    grid-template-columns: repeat(2, 1fr);
+  .service-mini-picks .chip {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .table-wrap {
+    margin: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 560px;
+  }
+
+  .wa-fab {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    padding: 12px;
   }
 
   .wa-fab-label {
     display: none;
   }
 
-  .wa-fab {
-    padding: 12px;
-    right: 16px;
-    bottom: 16px;
+  .brand-mark {
+    font-size: clamp(2rem, 9vw, 2.8rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .pole-stripe {
+    width: 4px;
+  }
+
+  .shell {
+    padding: 12px 10px 36px 12px;
+  }
+
+  .client-nav,
+  .client-hero,
+  .client-hero-compact,
+  .client-section,
+  .client-footer {
+    padding-left: 12px;
+    padding-right: 10px;
+  }
+
+  .client-brand {
+    font-size: clamp(2.2rem, 13vw, 3.2rem);
+  }
+
+  .brand-scissors {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+
+  .live-clock {
+    width: 100%;
+  }
+
+  .slot-grid,
+  .slot-grid-dense {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .slot-btn {
+    padding: 10px 8px;
+    font-size: 0.82rem;
+  }
+
+  .surface {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .section-head h2,
+  .client-section-head h2 {
+    font-size: 1.55rem;
+  }
+
+  .stat-value {
+    font-size: 1.45rem;
+  }
+
+  .btn {
+    padding: 12px 14px;
   }
 }
 
