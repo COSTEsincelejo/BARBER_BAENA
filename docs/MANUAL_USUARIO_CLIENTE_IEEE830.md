@@ -233,7 +233,6 @@ No se requiere registro de cuenta ni contraseña en el módulo Cliente.
 | Sin hora | “Selecciona un horario disponible.” |
 | Sin servicio | “Selecciona un servicio (Corte, Barba o Corte + Barba).” |
 | Sin nombre | “Escribe tu nombre para confirmar la cita.” |
-| Sin celular | “Escribe tu celular para historial y pago Nequi.” |
 | Horario ocupado (servidor) | Error de conflicto; el usuario debe elegir otra hora |
 
 ### 3.5 Confirmación por WhatsApp
@@ -243,7 +242,6 @@ No se requiere registro de cuenta ni contraseña en el módulo Cliente.
 Al confirmar, el sistema genera un mensaje con:
 
 - nombre del cliente;
-- celular;
 - servicio y precio;
 - fecha y hora;
 - indicación de pago sugerido por Nequi.
@@ -302,7 +300,7 @@ Todos abren un chat con un texto predefinido de consulta.
 | Paso 1 | Calendario mensual |
 | Paso 2 | Selector de horas (slots) |
 | Paso 3 | Chips de servicio |
-| Formulario | Nombre, celular, botón de confirmación |
+| Formulario | Nombre y botón de confirmación |
 
 ### 4.5 Pie y FAB
 
@@ -349,7 +347,7 @@ Inicio
   → Elegir día
   → Elegir hora disponible
   → Elegir servicio
-  → Ingresar nombre y celular
+  → Ingresar nombre
   → Confirmar (WhatsApp al admin)
   → (Opcional) Pagar Nequi + avisar
   → Fin
