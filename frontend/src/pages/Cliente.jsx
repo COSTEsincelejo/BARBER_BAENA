@@ -30,7 +30,6 @@ function mensajeCitaAdmin(turno, servicioNombre, precio) {
   return (
     `✂️ *Nueva cita — Baena Barber*\n\n` +
     `👤 Cliente: ${turno.cliente_nombre}\n` +
-    (turno.cliente_telefono ? `📱 Tel: ${turno.cliente_telefono}\n` : "") +
     `💇 Servicio: ${servicioNombre}\n` +
     (precio != null
       ? `💰 Precio: $${Number(precio).toLocaleString("es-CO")}\n`
@@ -192,7 +191,6 @@ export default function Cliente() {
       try {
         const res = await crearTurno({
           cliente_nombre: payload.cliente_nombre,
-          cliente_telefono: payload.cliente_telefono,
           servicio_id: servicioIdNum,
           fecha: form.fecha,
           hora: form.hora,
