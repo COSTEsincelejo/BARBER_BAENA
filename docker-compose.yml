@@ -31,6 +31,9 @@ services:
       DB_PASSWORD: barberia123
       DB_NAME: barberia_db
       PORT: 4000
+      JWT_SECRET: "e1fc8995fbdaed0a7d6979427b35c3ccd4b1e36c526062558fe35c8c73a6f80c"
+      ADMIN_USERNAME: "admin"
+      ADMIN_PASSWORD: "BaenaTmp-Y9SrYYj3"
       # Número de WhatsApp de la barbería (formato internacional, sin +, sin espacios)
       BARBERSHOP_WHATSAPP: "573001234567"
       BARBERSHOP_PHONE: "+573001234567"
