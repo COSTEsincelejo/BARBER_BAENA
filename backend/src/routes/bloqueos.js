@@ -1,11 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const ctrl = require("../controllers/turnosController");
+const ctrl = require("../controllers/bloqueosController");
 
 router.get("/", ctrl.listar);
-router.get("/disponibilidad", ctrl.consultarDisponibilidad);
 router.post("/", ctrl.crear);
-router.patch("/:id/estado", ctrl.actualizarEstado);
 router.delete("/:id", ctrl.eliminar);
 
 module.exports = router;
