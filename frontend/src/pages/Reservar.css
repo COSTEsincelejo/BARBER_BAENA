@@ -1,0 +1,195 @@
+.reservar-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 20px 16px 40px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.reservar-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.reservar-header h1 {
+  margin: 0 0 6px;
+  color: var(--navy);
+  font-size: 1.5rem;
+}
+
+.reservar-header p {
+  margin: 0;
+  color: var(--navy-light);
+  font-size: 0.95rem;
+}
+
+.reservar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.reservar-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 18px 16px;
+  box-shadow: 0 1px 4px rgba(11, 30, 57, 0.08);
+  margin-bottom: 16px;
+}
+
+.reservar-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  margin: 0 0 14px;
+}
+
+.reservar-paso {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--white);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.reservar-servicios {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reservar-servicio {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 2px solid #dce6f1;
+  border-radius: 10px;
+  cursor: pointer;
+  min-height: 56px;
+}
+
+.reservar-servicio input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.reservar-servicio.is-selected {
+  border-color: var(--navy);
+  background: var(--blue-light);
+}
+
+.reservar-servicio-nombre {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.reservar-servicio-meta {
+  font-size: 0.85rem;
+  color: var(--navy-light);
+}
+
+.reservar-calendario {
+  display: flex;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+.reservar-calendario .rdp-root {
+  --rdp-accent-color: #1f3864;
+  --rdp-accent-background-color: #dce6f1;
+  --rdp-day_button-width: 2.35rem;
+  --rdp-day_button-height: 2.35rem;
+  margin: 0;
+}
+
+.reservar-horas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reservar-hora {
+  min-height: 44px;
+  background: var(--white);
+  color: var(--navy);
+  border: 2px solid #dce6f1;
+  border-radius: 8px;
+}
+
+.reservar-hora.is-selected,
+.reservar-hora:hover {
+  background: var(--navy);
+  color: var(--white);
+  border-color: var(--navy);
+}
+
+.reservar-hint {
+  margin: 0 0 12px;
+  color: var(--navy-light);
+  font-size: 0.9rem;
+}
+
+.reservar-aviso {
+  margin: 0;
+  padding: 12px;
+  background: var(--blue-light);
+  color: var(--navy);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.reservar-error {
+  color: var(--danger);
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.reservar-confirmar,
+.reservar-otra {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+}
+
+.reservar-resumen {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.reservar-resumen li {
+  padding: 6px 0;
+  border-bottom: 1px solid #e5e9ef;
+}
+
+.reservar-contacto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.reservar-contacto a {
+  text-decoration: none;
+}
+
+.reservar-contacto button {
+  margin-right: 0;
+  min-height: 44px;
+}
+
+@media (max-width: 400px) {
+  .reservar-horas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
