@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const ctrl = require("../controllers/horariosController");
+const { requireAdmin } = require("../middleware/auth");
 
-router.get("/", ctrl.listar);
-router.put("/:dia_semana", ctrl.actualizar);
+router.get("/", requireAdmin, ctrl.listar);
+router.put("/:dia_semana", requireAdmin, ctrl.actualizar);
 
 module.exports = router;

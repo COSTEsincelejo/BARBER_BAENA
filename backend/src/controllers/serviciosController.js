@@ -51,6 +51,46 @@ async function cotizar(req, res) {
   }
 }
 
+async function actualizar(req, res) {
+  const { id } = req.params;
+  const { nombre, precio, duracion_min, activo } = req.body || {};
+  const fields = [];
+  const params = [];
+
+  if (nombre !== undefined) {
+    params.push(nombre);
+    fields.push(`nombre = $${params.length}`);
+  }
+  if (precio !== undefined) {
+    params.push(precio);
+    fields.push(`precio = $${params.length}`);
+  }
+  if (duracion_min !== undefined) {
+    params.push(duracion_min);
+    fields.push(`duracion_min = $${params.length}`);
+  }
+  if (activo !== undefined) {
+    params.push(activo);
+    fields.push(`activo = $${params.length}`);
+  }
+  if (fields.length === 0) {
+    return res.status(400).json({ error: "Enviá al menos un campo: nombre, precio, duracion_min o activo" });
+  }
+
+  params.push(id);
+  try {
+    const { rows } = await pool.query(
+      `UPDATE servicios SET ${fields.join(", ")} WHERE id = $${params.length} RETURNING *`,
+      params
+    );
+    if (rows.length === 0) return res.status(404).json({ error: "Servicio no encontrado" });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al actualizar servicio" });
+  }
+}
+
 async function eliminar(req, res) {
   const { id } = req.params;
   try {
@@ -62,4 +102,4 @@ async function eliminar(req, res) {
   }
 }
 
-module.exports = { listar, crear, cotizar, eliminar };
+module.exports = { listar, crear, cotizar, actualizar, eliminar };
