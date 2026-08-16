@@ -5,6 +5,8 @@ const cors = require("cors");
 const turnosRouter = require("./routes/turnos");
 const serviciosRouter = require("./routes/servicios");
 const finanzasRouter = require("./routes/finanzas");
+const horariosRouter = require("./routes/horarios");
+const bloqueosRouter = require("./routes/bloqueos");
 
 const app = express();
 app.use(cors());
@@ -15,6 +17,8 @@ app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/turnos", turnosRouter);
 app.use("/api/servicios", serviciosRouter);
 app.use("/api/finanzas", finanzasRouter);
+app.use("/api/horarios", horariosRouter);
+app.use("/api/bloqueos", bloqueosRouter);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
