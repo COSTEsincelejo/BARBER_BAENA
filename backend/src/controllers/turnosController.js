@@ -56,12 +56,24 @@ function generarSlots(horaApertura, horaCierre, duracionMin) {
   return slots;
 }
 
-function slotSeTraslapa(slotInicioMin, duracionMin, bloqueoInicio, bloqueoFin) {
-  const bIni = tiempoAMinutos(bloqueoInicio);
-  const bFin = tiempoAMinutos(bloqueoFin);
-  if (bIni == null || bFin == null) return false;
-  const slotFin = slotInicioMin + duracionMin;
-  return slotInicioMin < bFin && slotFin > bIni;
+function aMinutos(valor) {
+  if (valor == null) return null;
+  if (typeof valor === "number" && Number.isFinite(valor)) return valor;
+  return tiempoAMinutos(valor);
+}
+
+// Intervalos medio-abiertos [inicio, fin). Acepta minutos o TIME/HH:MM.
+function slotSeTraslapa(slotInicioMin, duracionMin, otroInicio, otroFin) {
+  const bIni = aMinutos(otroInicio);
+  const bFin = aMinutos(otroFin);
+  if (bIni == null || bFin == null || slotInicioMin == null) return false;
+  return slotInicioMin < bFin && slotInicioMin + duracionMin > bIni;
+}
+
+function rangoOcupado(hora, duracionMin) {
+  const inicio = tiempoAMinutos(hora);
+  if (inicio == null) return null;
+  return { inicio, fin: inicio + Number(duracionMin) };
 }
 
 // GET /api/turnos/disponibilidad?fecha=YYYY-MM-DD&servicio_id=ID
@@ -125,14 +137,19 @@ async function consultarDisponibilidad(req, res) {
     });
 
     const ocupados = await pool.query(
-      `SELECT hora FROM turnos
-       WHERE fecha = $1::date AND estado IN ('pendiente','confirmado')`,
+      `SELECT t.hora, COALESCE(s.duracion_min, 30) AS duracion_min
+       FROM turnos t
+       LEFT JOIN servicios s ON s.id = t.servicio_id
+       WHERE t.fecha = $1::date AND t.estado IN ('pendiente','confirmado')`,
       [fecha]
     );
-    const horasOcupadas = new Set(
-      ocupados.rows.map((r) => minutosAHora(tiempoAMinutos(r.hora)))
-    );
-    slots = slots.filter((slot) => !horasOcupadas.has(slot));
+    slots = slots.filter((slot) => {
+      const slotIni = tiempoAMinutos(slot);
+      return !ocupados.rows.some((t) => {
+        const rango = rangoOcupado(t.hora, t.duracion_min);
+        return rango && slotSeTraslapa(slotIni, duracionMin, rango.inicio, rango.fin);
+      });
+    });
 
     res.json({ disponible: true, horarios: slots });
   } catch (err) {
@@ -151,19 +168,34 @@ async function crear(req, res) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    // Serializa reservas concurrentes de la misma fecha+hora (FOR UPDATE no bloquea si no hay filas).
-    await client.query(
-      "SELECT pg_advisory_xact_lock(hashtext($1::text), hashtext($2::text))",
-      [fecha, hora]
-    );
+    // Serializa todas las creaciones del mismo día (el traslape ya no es solo hora exacta).
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1::text))", [fecha]);
 
-    const ocupado = await client.query(
-      `SELECT id FROM turnos
-       WHERE fecha = $1 AND hora = $2 AND estado IN ('pendiente','confirmado')
-       FOR UPDATE`,
-      [fecha, hora]
+    let duracionNueva = 30;
+    let servicioNombre = null;
+    if (servicio_id) {
+      const s = await client.query(
+        "SELECT nombre, duracion_min FROM servicios WHERE id = $1",
+        [servicio_id]
+      );
+      servicioNombre = s.rows[0]?.nombre ?? null;
+      if (s.rows[0]) duracionNueva = Number(s.rows[0].duracion_min) || 30;
+    }
+
+    const ocupados = await client.query(
+      `SELECT t.id, t.hora, COALESCE(s.duracion_min, 30) AS duracion_min
+       FROM turnos t
+       LEFT JOIN servicios s ON s.id = t.servicio_id
+       WHERE t.fecha = $1 AND t.estado IN ('pendiente','confirmado')
+       FOR UPDATE OF t`,
+      [fecha]
     );
-    if (ocupado.rows.length > 0) {
+    const nuevaIni = tiempoAMinutos(hora);
+    const hayTraslape = ocupados.rows.some((t) => {
+      const rango = rangoOcupado(t.hora, t.duracion_min);
+      return rango && slotSeTraslapa(nuevaIni, duracionNueva, rango.inicio, rango.fin);
+    });
+    if (hayTraslape) {
       await client.query("ROLLBACK");
       return res.status(409).json({ error: "Ese horario ya no está disponible, elige otro." });
     }
@@ -174,12 +206,6 @@ async function crear(req, res) {
       [cliente_nombre, cliente_telefono, servicio_id || null, barbero || null, fecha, hora, notas || null]
     );
     const turno = rows[0];
-
-    let servicioNombre = null;
-    if (servicio_id) {
-      const s = await client.query("SELECT nombre FROM servicios WHERE id = $1", [servicio_id]);
-      servicioNombre = s.rows[0]?.nombre;
-    }
 
     await client.query("COMMIT");
 
